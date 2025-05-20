@@ -2,15 +2,16 @@ import requests
 from bs4 import BeautifulSoup
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS 
-from langchain_openai import OpenAIEmbeddings 
 from langchain_google_genai import ChatGoogleGenerativeAI  
-from langchain_community.text_splitter import RecursiveCharacterTextSplitter  # type: ignore
+from langchain.text_splitter import RecursiveCharacterTextSplitter  
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from sentence_transformers import SentenceTransformer
 import tempfile
 import os
 
 class VectorDatabase:
     def __init__(self):
-        self.embeddings = OpenAIEmbeddings()
+        self.embeddings = SentenceTransformer('all-MiniLM-L6-v2')
         self.vectorstore = None
 
     def scrape_web(self, url):
@@ -36,10 +37,8 @@ class VectorDatabase:
             meta = metadatas[i] if metadatas else {}
             for chunk in splitter.split_text(text):
                 docs.append({"page_content": chunk, "metadata": meta})
-        # Prepare documents and metadatas for FAISS
         documents = [doc["page_content"] for doc in docs]
         metadatas_list = [doc["metadata"] for doc in docs]
-        # Remove duplicates based on content and metadata
         unique = set()
         filtered_docs = []
         filtered_metas = []
@@ -49,12 +48,10 @@ class VectorDatabase:
                 unique.add(key)
                 filtered_docs.append(doc)
                 filtered_metas.append(meta)
+        hf_embed = HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2')
         if self.vectorstore is None:
-            self.vectorstore = FAISS.from_texts(filtered_docs, self.embeddings, metadatas=filtered_metas)
+            self.vectorstore = FAISS.from_texts(filtered_docs, hf_embed, metadatas=filtered_metas)
         else:
-            # Check for duplicates in the existing vectorstore
-            # FAISS does not natively support duplicate checking, so we do a simple check here
-            # For a more robust solution, consider using a persistent DB for metadata
             existing = set()
             for doc in self.vectorstore.docstore._dict.values():
                 key = (doc.page_content, tuple(sorted(doc.metadata.items())) if isinstance(doc.metadata, dict) else str(doc.metadata))
@@ -82,7 +79,7 @@ class VectorDatabase:
             "Given a user query and a document, score the relevance of the document to the query "
             "from 1 (not relevant) to 10 (very relevant). Only return the score as a number."
         )
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0, system_instruction=system_instruction)
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0, system_instruction=system_instruction)
         scored = []
         for doc in candidates:
             prompt = f"Query: {query}\nDocument: {doc.page_content}\nScore the relevance of the document to the query from 1 (not relevant) to 10 (very relevant). Only return the score as a number."
@@ -93,3 +90,34 @@ class VectorDatabase:
             scored.append((score, doc))
         scored.sort(reverse=True, key=lambda x: x[0])
         return [doc for score, doc in scored[:k]]
+
+if __name__ == "__main__":
+    # Example inference code for RAGnarok VectorDatabase
+
+    # Initialize the vector database
+    db = VectorDatabase()
+
+    # Example: Scrape web and PDF, add to vectorstore
+    web_url = "https://www.iitrpr.ac.in/"
+    pdf_url = "https://arxiv.org/pdf/1706.03762.pdf"
+
+    print("Scraping web page...")
+    web_text = db.scrape_web(web_url)
+    print("Scraping PDF...")
+    pdf_text = db.scrape_pdf(pdf_url)
+
+    print("Adding documents to vector database...")
+    db.add_documents([web_text, pdf_text], metadatas=[{"source": web_url}, {"source": pdf_url}])
+
+    # Example query
+    query = "What are the research areas at IIT Ropar?"
+
+    print("\nRetrieving with FAISS similarity only:")
+    results = db.retrieve(query, k=3)
+    for i, doc in enumerate(results, 1):
+        print(f"\nResult {i}:\n{doc.page_content[:500]}...")  # Print first 500 chars
+
+    print("\nRetrieving with reranking using Gemini 2.0 Flash:")
+    results_rerank = db.retrieve(query, k=3, rerank_with_llm=True, rerank_top_n=8)
+    for i, doc in enumerate(results_rerank, 1):
+        print(f"\nReranked Result {i}:\n{doc.page_content[:500]}...")  # Print first 500 chars
