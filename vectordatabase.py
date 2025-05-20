@@ -75,7 +75,7 @@ class VectorDatabase:
     def update_database(self, website_urls=None, pdf_urls=None):
         """
         Scrape new website and PDF URLs, add their content and metadata to the vectorstore,
-        and avoid duplicating content already present in the database.
+        and avoids duplicating content already present in the database.
         Args:
             website_urls (list): List of website URLs to scrape.
             pdf_urls (list): List of PDF URLs to scrape.
@@ -116,6 +116,31 @@ class VectorDatabase:
             self.add_documents(new_texts, metadatas=new_metas)
         else:
             print("No new URLs to add to the database.")
+
+    def retrieve(self, query, k=5, rerank_with_llm=False, rerank_top_n=10):
+        if not self.vectorstore:
+            raise ValueError("Vector store is empty. Add documents first.")
+        # Step 1: Retrieve top-N candidates using FAISS
+        candidates = self.vectorstore.similarity_search(query, k=rerank_top_n if rerank_with_llm else k)
+        if not rerank_with_llm:
+            return candidates[:k]
+        # Step 2: Rerank using Gemini 2.0 Flash (fix system_instruction argument)
+        system_instruction = (
+            "You are a helpful assistant for reranking search results. "
+            "Given a user query and a document, score the relevance of the document to the query "
+            "from 1 (not relevant) to 10 (very relevant). Only return the score as a number."
+        )
+        llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, model_kwargs={"system_instruction": system_instruction})
+        scored = []
+        for doc in candidates:
+            prompt = f"Query: {query}\nDocument: {doc.page_content}\nScore the relevance of the document to the query from 1 (not relevant) to 10 (very relevant). Only return the score as a number."
+            try:
+                score = int(llm.invoke(prompt).content.strip())
+            except Exception:
+                score = 1  # fallback if LLM fails
+            scored.append((score, doc))
+        scored.sort(reverse=True, key=lambda x: x[0])
+        return [doc for score, doc in scored[:k]]
 
 if __name__ == "__main__":
     # Example inference code for RAGnarok VectorDatabase
