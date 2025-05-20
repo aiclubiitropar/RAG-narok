@@ -8,11 +8,17 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import SentenceTransformer
 import tempfile
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 class VectorDatabase:
     def __init__(self):
         self.embeddings = SentenceTransformer('all-MiniLM-L6-v2')
         self.vectorstore = None
+        # Set Gemini API key from environment variable
+        os.environ["GOOGLE_API_KEY"] = os.getenv("GEMINI_API_KEY", "")
 
     def scrape_web(self, url):
         response = requests.get(url)
@@ -73,13 +79,13 @@ class VectorDatabase:
         candidates = self.vectorstore.similarity_search(query, k=rerank_top_n if rerank_with_llm else k)
         if not rerank_with_llm:
             return candidates[:k]
-        # Step 2: Rerank using Gemini 2.0 Flash
+        # Step 2: Rerank using Gemini 2.0 Flash (fix system_instruction argument)
         system_instruction = (
             "You are a helpful assistant for reranking search results. "
             "Given a user query and a document, score the relevance of the document to the query "
             "from 1 (not relevant) to 10 (very relevant). Only return the score as a number."
         )
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0, system_instruction=system_instruction)
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0, model_kwargs={"system_instruction": system_instruction})
         scored = []
         for doc in candidates:
             prompt = f"Query: {query}\nDocument: {doc.page_content}\nScore the relevance of the document to the query from 1 (not relevant) to 10 (very relevant). Only return the score as a number."

@@ -1,30 +1,28 @@
-# Byte-compiled / optimized / DLL files
+# Ignore Python virtual environments
+rag_env/
+
+# Ignore environment variable files
+.env
+.env.*
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Python cache and build files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual environment
-rag_env/
+# Ignore logs
+*.log
 
-# VS Code settings
-.vscode/
-
-# Environment variables
-.env
-.env.*
-
-# Jupyter Notebook checkpoints
+# Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# OS files
+# Ignore OS files
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-
-# Python egg files
-*.egg
-*.egg-info/
+# Ignore dist and build folders
 dist/
 build/
