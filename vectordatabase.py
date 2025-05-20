@@ -1,9 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
-from langchain_community.document_loaders import PyPDFLoader # type: ignore
-from langchain_community.vectorstores import FAISS # type: ignore
-from langchain_openai import OpenAIEmbeddings # type: ignore
-from langchain_community.text_splitter import RecursiveCharacterTextSplitter # type: ignore
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import FAISS 
+from langchain_openai import OpenAIEmbeddings 
+from langchain_google_genai import ChatGoogleGenerativeAI  
+from langchain_community.text_splitter import RecursiveCharacterTextSplitter  # type: ignore
 import tempfile
 import os
 
@@ -76,7 +77,6 @@ class VectorDatabase:
         if not rerank_with_llm:
             return candidates[:k]
         # Step 2: Rerank using Gemini 2.0 Flash
-        from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore
         system_instruction = (
             "You are a helpful assistant for reranking search results. "
             "Given a user query and a document, score the relevance of the document to the query "
