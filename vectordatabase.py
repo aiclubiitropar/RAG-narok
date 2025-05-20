@@ -75,9 +75,14 @@ class VectorDatabase:
         candidates = self.vectorstore.similarity_search(query, k=rerank_top_n if rerank_with_llm else k)
         if not rerank_with_llm:
             return candidates[:k]
-        # Step 2: Rerank using LLM (OpenAI)
-        from langchain_openai import ChatOpenAI # type: ignore
-        llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+        # Step 2: Rerank using Gemini 2.0 Flash
+        from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore
+        system_instruction = (
+            "You are a helpful assistant for reranking search results. "
+            "Given a user query and a document, score the relevance of the document to the query "
+            "from 1 (not relevant) to 10 (very relevant). Only return the score as a number."
+        )
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0, system_instruction=system_instruction)
         scored = []
         for doc in candidates:
             prompt = f"Query: {query}\nDocument: {doc.page_content}\nScore the relevance of the document to the query from 1 (not relevant) to 10 (very relevant). Only return the score as a number."
