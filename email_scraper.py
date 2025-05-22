@@ -84,7 +84,7 @@ def scrape_emails(username=None, password=None, folder="INBOX"):
         print("An error occurred:", e)
 
 # Function to scrape the latest 5 emails
-def scrape_latest_emails(username=None, password=None, folder="INBOX", count=5):
+def scrape_latest_emails(username=None, password=None, folder="INBOX", count=5, blocklist=None):
     try:
         # Use environment variables if username or password is not provided
         username = username or os.getenv("GMAIL_USERNAME")
@@ -112,6 +112,10 @@ def scrape_latest_emails(username=None, password=None, folder="INBOX", count=5):
         latest_emails = messages[-count:]
 
         email_data = {}
+
+        # Default blocklist if none provided
+        if blocklist is None:
+            blocklist = []
 
         for mail in reversed(latest_emails):
             # Fetch the email by ID
@@ -147,6 +151,10 @@ def scrape_latest_emails(username=None, password=None, folder="INBOX", count=5):
                     else:
                         body = msg.get_payload(decode=True).decode()
 
+                    # Check if the email should be blocked
+                    if any(keyword in (subject or "") for keyword in blocklist) or any(keyword in (from_ or "") for keyword in blocklist):
+                        continue
+
                     # Store the email data in the dictionary
                     email_data[mail.decode()] = {
                         "subject": subject,
@@ -166,6 +174,7 @@ def scrape_latest_emails(username=None, password=None, folder="INBOX", count=5):
         return {}
 
 if __name__ == "__main__":
-    print("Fetching the latest 2 emails...")
-    emails = scrape_latest_emails(count=2)
+    blocklist = ["no-reply@accounts.google.com", "Security alert","unstop","linkedin", "kaggle", "Team Unstop", "Canva", "noreply@github.com", "noreply", "feed"]
+    print("Fetching the latest 1000 emails...")
+    emails = scrape_latest_emails(count=1000, blocklist=blocklist)
     print(emails)
