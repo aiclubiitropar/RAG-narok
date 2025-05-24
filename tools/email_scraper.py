@@ -15,173 +15,126 @@ load_dotenv()
 def clean(text):
     return "".join(c if c.isalnum() else "_" for c in text)
 
-# Function to scrape emails
-def scrape_emails(username=None, password=None, folder="INBOX"):
-    try:
-        # Use environment variables if username or password is not provided
-        username = username or os.getenv("GMAIL_USERNAME")
-        password = password or os.getenv("GMAIL_PASSWORD")
+class EmailScraper:
+    def __init__(self, username=None, password=None):
+        """
+        Initialize the EmailScraper with optional username and password.
+        If not provided, credentials are fetched from environment variables.
+        """
+        self.username = username or os.getenv("GMAIL_USERNAME")
+        self.password = password or os.getenv("GMAIL_PASSWORD")
 
-        if not username or not password:
+        if not self.username or not self.password:
             raise ValueError("Gmail credentials are not provided or set in environment variables.")
 
-        # Connect to the server
+    def _connect(self):
+        """Connect to the Gmail IMAP server and login."""
         imap = imaplib.IMAP4_SSL("imap.gmail.com")
+        imap.login(self.username, self.password)
+        return imap
 
-        # Login to the account
-        imap.login(username, password)
+    def scrape_emails(self, folder="INBOX"):
+        """Scrape all emails from the specified folder."""
+        try:
+            imap = self._connect()
+            imap.select(folder)
 
-        # Select the mailbox you want to use
-        imap.select(folder)
+            status, messages = imap.search(None, "ALL")
+            messages = messages[0].split()
 
-        # Search for all emails
-        status, messages = imap.search(None, "ALL")
-
-        # Convert messages to a list of email IDs
-        messages = messages[0].split()
-
-        for mail in messages:
-            # Fetch the email by ID
-            res, msg = imap.fetch(mail, "(RFC822)")
-            for response in msg:
-                if isinstance(response, tuple):
-                    # Parse a bytes email into a message object
-                    msg = email.message_from_bytes(response[1])
-
-                    # Decode the email subject
-                    subject, encoding = decode_header(msg["Subject"])[0]
-                    if isinstance(subject, bytes):
-                        # If it's a bytes, decode to str
-                        subject = subject.decode(encoding if encoding else "utf-8")
-                    print("Subject:", subject)
-
-                    # Decode email sender
-                    from_ = msg.get("From")
-                    print("From:", from_)
-
-                    # If the email message is multipart
-                    if msg.is_multipart():
-                        # Iterate over email parts
-                        for part in msg.walk():
-                            # Extract content type of email
-                            content_type = part.get_content_type()
-                            content_disposition = str(part.get("Content-Disposition"))
-
-                            try:
-                                # Get the email body
-                                body = part.get_payload(decode=True).decode()
-                                print("Body:", body)
-                            except:
-                                pass
-                    else:
-                        # Extract content type of email
-                        content_type = msg.get_content_type()
-                        # Get the email body
-                        body = msg.get_payload(decode=True).decode()
-                        print("Body:", body)
-
-        # Close the connection and logout
-        imap.close()
-        imap.logout()
-
-    except Exception as e:
-        print("An error occurred:", e)
-
-# Function to scrape the latest emails with logging and case-sensitive filtering
-def scrape_latest_emails(username=None, password=None, folder="INBOX", count=5, blocklist=None):
-    try:
-        # Use environment variables if username or password is not provided
-        username = username or os.getenv("GMAIL_USERNAME")
-        password = password or os.getenv("GMAIL_PASSWORD")
-
-        if not username or not password:
-            raise ValueError("Gmail credentials are not provided or set in environment variables.")
-
-        # Connect to the server
-        imap = imaplib.IMAP4_SSL("imap.gmail.com")
-
-        # Login to the account
-        imap.login(username, password)
-
-        # Select the mailbox you want to use
-        imap.select(folder)
-
-        # Search for all emails
-        status, messages = imap.search(None, "ALL")
-
-        # Convert messages to a list of email IDs
-        messages = messages[0].split()
-
-        # Get the latest 'count' emails
-        latest_emails = messages[-count:]
-
-        email_data = {}
-
-        # Default blocklist if none provided
-        if blocklist is None:
-            blocklist = []
-
-        for mail in reversed(latest_emails):
-            try:
-                # Fetch the email by ID
+            for mail in messages:
                 res, msg = imap.fetch(mail, "(RFC822)")
                 for response in msg:
                     if isinstance(response, tuple):
-                        # Parse a bytes email into a message object
                         msg = email.message_from_bytes(response[1])
-
-                        # Decode the email subject
                         subject, encoding = decode_header(msg["Subject"])[0]
                         if isinstance(subject, bytes):
                             subject = subject.decode(encoding if encoding else "utf-8")
+                        print("Subject:", subject)
 
-                        # Decode email sender
                         from_ = msg.get("From")
+                        print("From:", from_)
 
-                        # Decode the email date
-                        date = msg.get("Date")
-
-                        # If the email message is multipart
-                        body = ""
                         if msg.is_multipart():
                             for part in msg.walk():
-                                content_type = part.get_content_type()
                                 try:
                                     body = part.get_payload(decode=True).decode()
-                                    break
+                                    print("Body:", body)
                                 except:
                                     pass
                         else:
                             body = msg.get_payload(decode=True).decode()
+                            print("Body:", body)
 
-                        # Check if the email should be blocked (case-sensitive)
-                        if any(keyword in (subject or "") for keyword in blocklist) or \
-                           any(keyword in (from_ or "") for keyword in blocklist):
-                            logging.info(f"Blocked email from: {from_}, subject: {subject}")
-                            continue
+            imap.close()
+            imap.logout()
 
-                        # Store the email data in the dictionary
-                        email_data[mail.decode()] = {
-                            "subject": subject,
-                            "from": from_,
-                            "body": body,
-                            "date": date
-                        }
-            except Exception as e:
-                logging.error(f"Error processing email ID {mail.decode()}: {e}")
+        except Exception as e:
+            print("An error occurred:", e)
 
-        # Close the connection and logout
-        imap.close()
-        imap.logout()
+    def scrape_latest_emails(self, folder="INBOX", count=5, blocklist=None):
+        """Scrape the latest emails with optional blocklist filtering."""
+        try:
+            imap = self._connect()
+            imap.select(folder)
 
-        return email_data
+            status, messages = imap.search(None, "ALL")
+            messages = messages[0].split()
+            latest_emails = messages[-count:]
 
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        return {}
+            email_data = {}
+            blocklist = blocklist or []
+
+            for mail in reversed(latest_emails):
+                try:
+                    res, msg = imap.fetch(mail, "(RFC822)")
+                    for response in msg:
+                        if isinstance(response, tuple):
+                            msg = email.message_from_bytes(response[1])
+                            subject, encoding = decode_header(msg["Subject"])[0]
+                            if isinstance(subject, bytes):
+                                subject = subject.decode(encoding if encoding else "utf-8")
+
+                            from_ = msg.get("From")
+                            date = msg.get("Date")
+
+                            body = ""
+                            if msg.is_multipart():
+                                for part in msg.walk():
+                                    try:
+                                        body = part.get_payload(decode=True).decode()
+                                        break
+                                    except:
+                                        pass
+                            else:
+                                body = msg.get_payload(decode=True).decode()
+
+                            if any(keyword in (subject or "") for keyword in blocklist) or \
+                               any(keyword in (from_ or "") for keyword in blocklist):
+                                logging.info(f"Blocked email from: {from_}, subject: {subject}")
+                                continue
+
+                            email_data[mail.decode()] = {
+                                "subject": subject,
+                                "from": from_,
+                                "body": body,
+                                "date": date
+                            }
+                except Exception as e:
+                    logging.error(f"Error processing email ID {mail.decode()}: {e}")
+
+            imap.close()
+            imap.logout()
+
+            return email_data
+
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            return {}
 
 if __name__ == "__main__":
     blocklist = ["no-reply@accounts.google.com", "Security alert", "unstop", "linkedin", "kaggle", "Team Unstop", "Canva", "noreply@github.com", "noreply", "feed"]
     logging.info("Fetching the latest 1000 emails...")
-    emails = scrape_latest_emails(count=1000, blocklist=blocklist)
+    scraper = EmailScraper()
+    emails = scraper.scrape_latest_emails(count=10, blocklist=blocklist)
     logging.info(f"Fetched emails: {emails}")
