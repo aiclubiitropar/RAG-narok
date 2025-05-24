@@ -27,4 +27,5 @@ Thumbs.db
 dist/
 build/
 
-C:\Users\dedeep vasireddy\.vscode\RAG-narok\tools\latest_emails.json
+# Ignore latest_emails.json file
+latest_emails.json
