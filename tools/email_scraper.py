@@ -116,9 +116,14 @@ class EmailScraper:
 
                             email_data[mail.decode()] = {
                                 "subject": subject,
-                                "from": from_,
+                                "from": from_, 
                                 "body": body,
-                                "date": date
+                                "date": date,
+                                "metadata": {
+                                    "subject": subject,
+                                    "from": from_,
+                                    "date": date
+                                }
                             }
                 except Exception as e:
                     logging.error(f"Error processing email ID {mail.decode()}: {e}")
@@ -133,8 +138,17 @@ class EmailScraper:
             return {}
 
 if __name__ == "__main__":
+    import json
+
     blocklist = ["no-reply@accounts.google.com", "Security alert", "unstop", "linkedin", "kaggle", "Team Unstop", "Canva", "noreply@github.com", "noreply", "feed"]
-    logging.info("Fetching the latest 1000 emails...")
+    logging.info("Fetching the latest 10,000 emails...")
+
     scraper = EmailScraper()
-    emails = scraper.scrape_latest_emails(count=10, blocklist=blocklist)
-    logging.info(f"Fetched emails: {emails}")
+    emails = scraper.scrape_latest_emails(count=10000, blocklist=blocklist)
+
+    # Save the emails to a JSON file
+    output_file = "latest_emails.json"
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(emails, f, ensure_ascii=False, indent=4)
+
+    logging.info(f"Fetched emails saved to {output_file}")
