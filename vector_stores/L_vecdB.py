@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 class LongTermDatabase:
-    def __init__(self, persist_directory=".longterm_db", model_name='BAAI/bge-m3', use_fp16=True):
+    def __init__(self, persist_directory="longterm_db", model_name='BAAI/bge-m3', use_fp16=True):
         """
         Initialize long-term databases for both full-data and metadata embeddings.
         Creates two ChromaDB collections: 'main_data' and 'meta_data'.
@@ -18,7 +18,6 @@ class LongTermDatabase:
             chroma_db_impl="duckdb+parquet"
         )
         self.client = chromadb.Client(settings)
-        # Collections for main and metadata channels
         self.main_data = self.client.get_or_create_collection(name="main_data")
         self.meta_data = self.client.get_or_create_collection(name="meta_data")
         self.embedding_model = BGEM3FlagModel(model_name, use_fp16=use_fp16)
@@ -42,7 +41,6 @@ class LongTermDatabase:
 
         data_embeddings = self.embedding_model.encode(full_texts)
         meta_embeddings = self.embedding_model.encode(meta_texts)
-        # Ingest
         self.main_data.add(
             ids=ids,
             embeddings=data_embeddings,
@@ -57,34 +55,24 @@ class LongTermDatabase:
         )
         self.save()
 
-    def receive_data(self, ids, data_embeddings, meta_embeddings, documents=None, metadatas=None):
+    def receive_data(self, ids, data_embeddings, meta_embeddings):
         """
         Directly ingest precomputed embeddings into both collections.
         :param ids: List of item identifiers.
-        :param data_embeddings: List of embeddings for the full-data channel.
+        :param data_embeddings: List of embeddings for the data channel.
         :param meta_embeddings: List of embeddings for the metadata channel.
-        :param documents: (Optional) List of serialized full items (strings). If None, stored docs remain empty.
-        :param metadatas: (Optional) List of metadata dicts. If None, stored metadatas use empty dicts.
         """
-        # Prepare defaults
-        if documents is None:
-            documents = [''] * len(ids)
-        if metadatas is None:
-            metadatas = [{} for _ in ids]
-
-        # Add to main_data
         self.main_data.add(
             ids=ids,
             embeddings=data_embeddings,
-            metadatas=[{'metadata': m} for m in metadatas],
-            documents=documents
+            metadatas=[{} for _ in ids],
+            documents=[''] * len(ids)
         )
-        # Add to meta_data
         self.meta_data.add(
             ids=ids,
             embeddings=meta_embeddings,
-            metadatas=[{'metadata': m} for m in metadatas],
-            documents=[json.dumps(m, ensure_ascii=False) for m in metadatas]
+            metadatas=[{} for _ in ids],
+            documents=[''] * len(ids)
         )
         self.save()
 
@@ -95,7 +83,6 @@ class LongTermDatabase:
         2. From those, topk_data by data similarity from 'main_data'.
         Returns concatenated strings: "<id> | <full-item> | <metadata>".
         """
-        # Stage 1: metadata
         q_emb = self.embedding_model.encode([query_text])[0]
         meta_res = self.meta_data.query(
             query_embeddings=[q_emb],
@@ -103,7 +90,6 @@ class LongTermDatabase:
         )
         candidate_ids = meta_res['ids'][0]
 
-        # Stage 2: data
         full_res = self.main_data.get(
             ids=candidate_ids,
             include=["documents", "embeddings", "metadatas"]
@@ -112,7 +98,6 @@ class LongTermDatabase:
         embs = full_res['embeddings']
         metas = [m.get('metadata') for m in full_res['metadatas']]
 
-        # Cosine similarity
         q_norm = np.linalg.norm(q_emb)
         d_norms = np.linalg.norm(embs, axis=1)
         sims = np.dot(embs, q_emb) / (d_norms * q_norm + 1e-8)
@@ -120,7 +105,6 @@ class LongTermDatabase:
 
         results = []
         for idx in idx_sorted:
-            # Format text
             full_text = docs[idx]
             try:
                 full_item = json.dumps(json.loads(full_text), ensure_ascii=False)
@@ -135,3 +119,15 @@ class LongTermDatabase:
         Persist both collections.
         """
         self.client.persist()
+        
+    @classmethod
+    def load_database(cls, persist_directory, model_name='BAAI/bge-m3', use_fp16=True):
+        """
+        Load an existing ChromaDB database from disk.
+        :param persist_directory: directory where ChromaDB data is stored
+        :param model_name: embedding model to use for queries
+        :param use_fp16: whether to run embeddings in FP16
+        :return: LongTermDatabase instance connected to existing data
+        """
+        return cls(persist_directory=persist_directory, model_name=model_name, use_fp16=use_fp16)
+
