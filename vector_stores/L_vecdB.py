@@ -1,6 +1,6 @@
 import chromadb
 from chromadb.config import Settings
-from FlagEmbedding import BGEM3FlagModel # type: ignore
+from FlagEmbedding import BGEM3FlagModel 
 import json
 import os
 import numpy as np
