@@ -1,6 +1,6 @@
 import chromadb
 from chromadb.config import Settings
-from FlagEmbedding import BGEM3FlagModel
+from FlagEmbedding import BGEM3FlagModel # type: ignore
 import json
 import os
 import numpy as np
@@ -13,9 +13,10 @@ class LongTermDatabase:
         """
         self.persist_directory = persist_directory
         os.makedirs(self.persist_directory, exist_ok=True)
+        # Removed the deprecated chroma_db_impl setting
         settings = Settings(
             persist_directory=self.persist_directory,
-            chroma_db_impl="duckdb+parquet"
+            # chroma_db_impl="duckdb+parquet" # This is deprecated
         )
         self.client = chromadb.Client(settings)
         self.main_data = self.client.get_or_create_collection(name="main_data")
@@ -130,4 +131,19 @@ class LongTermDatabase:
         :return: LongTermDatabase instance connected to existing data
         """
         return cls(persist_directory=persist_directory, model_name=model_name, use_fp16=use_fp16)
+
+if __name__ == "__main__":
+    # Example usage for adding data
+    db = LongTermDatabase(persist_directory="longterm_db")
+    json_file = "C:\\Users\\dedeep vasireddy\\.vscode\\RAG-narok\\tools\\latest_emails.json"  # Path to your JSON file
+    print(f"Adding data from {json_file} to the long-term database...")
+    db.add_data(json_file)
+    print("Data added and persisted.")
+
+    # Example usage for smart query
+    query = "overall coordinator"
+    print(f"\nSmart query results for: '{query}'\n")
+    results = db.smart_query(query_text=query, topk_meta=5, topk_data=3)
+    for res in results:
+        print(res)
 
