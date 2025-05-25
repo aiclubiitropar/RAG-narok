@@ -144,7 +144,7 @@ if __name__ == "__main__":
     logging.info("Fetching the latest 10,000 emails...")
 
     scraper = EmailScraper()
-    emails = scraper.scrape_latest_emails(count=10, blocklist=blocklist)
+    emails = scraper.scrape_latest_emails(count=10000, blocklist=blocklist)
 
     # Save the emails to a JSON file
     output_file = "latest_emails.json"
