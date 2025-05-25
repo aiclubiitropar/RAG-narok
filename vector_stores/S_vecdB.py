@@ -1,10 +1,12 @@
 import time
 import threading
+import json
+import numpy as np
 from datetime import datetime, timedelta
 from typing import Callable, Dict, Optional, List
 import chromadb
-from L_vecdB import BGEM3FlagModel
 from chromadb.config import Settings
+from L_vecdB import LongTermDatabase, BGEM3FlagModel
 
 class ShortTermDatabase:
     """
@@ -27,7 +29,7 @@ class ShortTermDatabase:
         client_settings: Settings,
         short_term_folder: str,
         long_term_folder: str,
-        model: Callable[[List[str]], List[List[float]]],
+        model: Callable[[List[str]], List[List[float]]] = BGEM3FlagModel().encode,
         time_threshold: float = 1.0,
         count_threshold: int = 100,
         fetch_latest_email: Optional[Callable[[], Dict]] = None,
@@ -38,7 +40,7 @@ class ShortTermDatabase:
         self.long_term_folder = long_term_folder
 
         # Initialize Chroma client for short-term
-        self.client = chromadb.Client(client_settings)
+        self.client = chromadb.Client(Settings(persist_directory=self.short_term_folder))
         self.short_data = self.client.get_or_create_collection(
             name="short_main_data",
             persist_directory=self.short_term_folder
@@ -48,11 +50,10 @@ class ShortTermDatabase:
             persist_directory=self.short_term_folder
         )
 
-        # Model for embedding
+        # Embedding model function
         self.model = model
 
         # Buffer control thresholds
-        # time_threshold input is days; convert to a timedelta
         self.time_threshold = timedelta(days=time_threshold)
         self.count_threshold = count_threshold
         self.fetch_latest_email = fetch_latest_email
@@ -68,18 +69,17 @@ class ShortTermDatabase:
         """
         Vectorize the email body and metadata, then add to short-term collections and persist.
         """
-        # Extract ID and fields
         eid = email['id']
         raw = email['body']
         meta = {k: email[k] for k in email if k != 'body'}
 
         # Vectorize text and metadata
         data_vec = self.model([raw])[0]
-        meta_vec = self.model([str(meta)])[0]
+        meta_vec = self.model([json.dumps(meta)])[0]
 
         # Add vectors to ChromaDB
-        self.short_data.add(ids=[eid], embeddings=[data_vec], metadatas=[email])
-        self.short_meta.add(ids=[eid], embeddings=[meta_vec], metadatas=[meta])
+        self.short_data.add(ids=[eid], embeddings=[data_vec], metadatas=[email], documents=[raw])
+        self.short_meta.add(ids=[eid], embeddings=[meta_vec], metadatas=[meta], documents=[json.dumps(meta)])
 
         # Persist after adding
         self.persist()
@@ -100,13 +100,11 @@ class ShortTermDatabase:
         """
         Move all buffered emails to the long-term database and persist both sides.
         """
-        from L_vecdB import LongTermDatabase
-
-        # Initialize long-term DB with its persistence directory
+        # Initialize long-term DB
         long_db = LongTermDatabase(
-            client_settings=self.client.get_settings(),
             persist_directory=self.long_term_folder,
-            model=self.model
+            model_name=None,
+            use_fp16=None
         )
 
         # Retrieve buffered data
@@ -158,9 +156,40 @@ class ShortTermDatabase:
                     self._last_email_id = email['id']
                     self.vectorize_and_add(email)
             except Exception:
-                # Optionally log fetch failures
                 pass
             time.sleep(self.poll_interval)
+
+    def smart_query(self, query_text: str, topk_meta: int = 10, topk_data: int = 5) -> List[str]:
+        """
+        Two-stage retrieval on short-term data:
+        1. Retrieve top-k_meta IDs from metadata similarity.
+        2. Re-rank those by content similarity and return topk_data results.
+        """
+        # Encode query
+        q_emb = self.model([query_text])[0]
+        # Stage 1: metadata similarity
+        meta_res = self.short_meta.query(query_embeddings=[q_emb], n_results=topk_meta)
+        candidate_ids = meta_res['ids'][0]
+
+        # Stage 2: fetch and rank by main content similarity
+        full_res = self.short_data.get(ids=candidate_ids, include=['documents', 'embeddings', 'metadatas'])
+        docs = full_res['documents']
+        embs = full_res['embeddings']
+        metas = full_res['metadatas']
+
+        # Compute cosine similarities
+        q_norm = np.linalg.norm(q_emb)
+        d_norms = np.linalg.norm(embs, axis=1)
+        sims = np.dot(embs, q_emb) / (d_norms * q_norm + 1e-8)
+        idx_sorted = np.argsort(-sims)[:topk_data]
+
+        results = []
+        for idx in idx_sorted:
+            item_id = candidate_ids[idx]
+            full_doc = docs[idx]
+            meta = metas[idx]
+            results.append(f"{item_id} | {full_doc} | {json.dumps(meta, ensure_ascii=False)}")
+        return results
 
     def persist(self):
         """
