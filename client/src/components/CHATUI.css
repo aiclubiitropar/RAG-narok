@@ -1,0 +1,84 @@
+/* Blue theme styles for CHATUI */
+.chat-ui {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  background-color: #e3f2fd; /* Light blue background */
+  padding: 20px;
+}
+
+.chat-ui-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1e88e5; /* Blue header */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin: 20px 0;
+  padding: 10px;
+  background-color: #bbdefb; /* Light blue for chat area */
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.message-bubble {
+  max-width: 70%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message-bubble.user {
+  align-self: flex-end;
+  background-color: #1976d2; /* Blue for user messages */
+  color: white;
+}
+
+.message-bubble.bot {
+  align-self: flex-start;
+  background-color: #e3f2fd; /* Lighter blue for bot messages */
+  color: black;
+}
+
+.typing-indicator {
+  font-style: italic;
+  color: gray;
+  margin: 10px 0;
+}
+
+.chat-form {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-form input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.chat-form button {
+  padding: 10px 20px;
+  background-color: #1e88e5; /* Blue for send button */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+}
+
+.chat-form button:hover {
+  background-color: #1565c0; /* Darker blue on hover */
+}

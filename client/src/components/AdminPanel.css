@@ -1,0 +1,21 @@
+/* Placeholder styles for AdminPanel */
+.admin-panel {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.worker-status button,
+.logs button {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.worker-status p,
+.logs p {
+  margin-top: 10px;
+}
