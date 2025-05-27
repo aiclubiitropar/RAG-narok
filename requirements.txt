@@ -9,3 +9,8 @@ faiss-cpu
 python-dotenv
 chromadb
 FlagEmbedding
+langgraph
+flask
+flask-cors
+werkzeug
+threading
