@@ -1,27 +1,36 @@
-import chromadb
+from chromadb import PersistentClient
 from chromadb.config import Settings
-from FlagEmbedding import BGEM3FlagModel 
+from sentence_transformers import SentenceTransformer
 import json
 import os
 import numpy as np
 
 class LongTermDatabase:
-    def __init__(self, persist_directory="longterm_db", model_name='BAAI/bge-m3', use_fp16=True):
+    def __init__(
+        self,
+        persist_directory="longterm_db",
+        model_name='paraphrase-multilingual-MiniLM-L12-v2',
+        use_fp16=True
+    ):
         """
         Initialize long-term databases for both full-data and metadata embeddings.
         Creates two ChromaDB collections: 'main_data' and 'meta_data'.
         """
         self.persist_directory = persist_directory
         os.makedirs(self.persist_directory, exist_ok=True)
-        # Removed the deprecated chroma_db_impl setting
+
+        # Use PersistentClient with Settings for on-disk persistence
         settings = Settings(
             persist_directory=self.persist_directory,
-            # chroma_db_impl="duckdb+parquet" # This is deprecated
+            anonymized_telemetry=False
         )
-        self.client = chromadb.Client(settings)
+        self.client = PersistentClient(settings=settings)
+
         self.main_data = self.client.get_or_create_collection(name="main_data")
         self.meta_data = self.client.get_or_create_collection(name="meta_data")
-        self.embedding_model = BGEM3FlagModel(model_name, use_fp16=use_fp16)
+
+        # Load embedding model
+        self.embedding_model = SentenceTransformer(model_name)
 
     def add_data(self, json_file: str):
         """
@@ -42,16 +51,17 @@ class LongTermDatabase:
 
         data_embeddings = self.embedding_model.encode(full_texts)
         meta_embeddings = self.embedding_model.encode(meta_texts)
+
         self.main_data.add(
             ids=ids,
             embeddings=data_embeddings,
-            metadatas=[{'metadata': m} for m in raw_meta],
+            metadatas=[{'metadata': json.dumps(m, ensure_ascii=False)} for m in raw_meta],
             documents=full_texts
         )
         self.meta_data.add(
             ids=ids,
             embeddings=meta_embeddings,
-            metadatas=[{'metadata': m} for m in raw_meta],
+            metadatas=[{'metadata': json.dumps(m, ensure_ascii=False)} for m in raw_meta],
             documents=meta_texts
         )
         self.save()
@@ -89,6 +99,10 @@ class LongTermDatabase:
             query_embeddings=[q_emb],
             n_results=topk_meta
         )
+
+        if not meta_res['ids'] or not meta_res['ids'][0]:
+            return []
+
         candidate_ids = meta_res['ids'][0]
 
         full_res = self.main_data.get(
@@ -117,33 +131,27 @@ class LongTermDatabase:
 
     def save(self):
         """
-        Persist both collections.
+        Save the current state of the database to disk.
         """
         self.client.persist()
-        
+
     @classmethod
-    def load_database(cls, persist_directory, model_name='BAAI/bge-m3', use_fp16=True):
+    def load_database(cls, persist_directory="longterm_db"):
         """
-        Load an existing ChromaDB database from disk.
-        :param persist_directory: directory where ChromaDB data is stored
-        :param model_name: embedding model to use for queries
-        :param use_fp16: whether to run embeddings in FP16
-        :return: LongTermDatabase instance connected to existing data
+        Load an existing database from disk.
         """
-        return cls(persist_directory=persist_directory, model_name=model_name, use_fp16=use_fp16)
+        return cls(persist_directory=persist_directory)
 
 if __name__ == "__main__":
-    # Example usage for adding data
     db = LongTermDatabase(persist_directory="longterm_db")
-    json_file = "C:\\Users\\dedeep vasireddy\\.vscode\\RAG-narok\\tools\\latest_emails.json"  # Path to your JSON file
+    json_file = r"C:\Users\dedeep vasireddy\.vscode\RAG-narok\tools\latest_emails.json"
     print(f"Adding data from {json_file} to the long-term database...")
     db.add_data(json_file)
     print("Data added and persisted.")
-
-    # Example usage for smart query
-    query = "overall coordinator"
+    db = LongTermDatabase.load_database(persist_directory="longterm_db")
+    print("Long-term database loaded successfully.")
+    query = input("Enter your query: ")
     print(f"\nSmart query results for: '{query}'\n")
     results = db.smart_query(query_text=query, topk_meta=5, topk_data=3)
     for res in results:
         print(res)
-
