@@ -146,6 +146,11 @@ class ShortTermDatabase:
         while not self._stop_event.is_set():
             if self.fetch_latest_email:
                 email = self.fetch_latest_email()
+                if email is None:
+                    logging.info("No new email found. Skipping this iteration.")
+                    self._maybe_flush()
+                    time.sleep(self.poll_interval)
+                    continue
                 # Blocklist filtering
                 if email:
                     subject = email.get('subject', '')
@@ -156,6 +161,7 @@ class ShortTermDatabase:
                         self._last_email_id = email['id']
                         self.vectorize_and_add(email)
             self._maybe_flush()
+            print(f"Short-term DB size: {self.short_data.count()} emails")
             time.sleep(self.poll_interval)
 
     def run_worker(self):

@@ -65,6 +65,9 @@ class LongTermDatabase:
             documents=meta_texts
         )
         self.save()
+        print(f"Added {len(ids)} items to the long-term database from {json_file}.")
+        print(f"Data embeddings shape: {data_embeddings.shape}")
+        print(f"Metadata embeddings shape: {meta_embeddings.shape}")
 
     def receive_data(self, ids, data_embeddings, meta_embeddings):
         """
@@ -133,7 +136,7 @@ class LongTermDatabase:
         """
         Save the current state of the database to disk.
         """
-        self.client.persist()
+        pass  # Removed self.client.persist() as it is not a valid method
 
     @classmethod
     def load_database(cls, persist_directory="longterm_db"):
