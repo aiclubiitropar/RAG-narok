@@ -1,290 +1,287 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import RAGnarokLogo from './RAG_logo.png';
 
-// Avatar component for user and bot
-const Avatar = ({ sender }) => (
-  <div style={{
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    background: sender === 'user' ? 'linear-gradient(135deg, #1976d2 60%, #42a5f5 100%)' : 'linear-gradient(135deg, #263238 60%, #90caf9 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-    marginRight: 12,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-  }}>
-    {sender === 'user' ? 'U' : 'B'}
-  </div>
-);
-
-// Message bubble with animation
-const MessageBubble = ({ sender, text, time }) => (
-  <div style={{
-    display: 'flex',
-    flexDirection: sender === 'user' ? 'row-reverse' : 'row',
-    alignItems: 'flex-end',
-    marginBottom: 18,
-    animation: 'fadeIn 0.4s',
-  }}>
-    <Avatar sender={sender} />
-    <div style={{
-      background: sender === 'user' ? 'linear-gradient(135deg, #1976d2 60%, #42a5f5 100%)' : 'linear-gradient(135deg, #23272f 60%, #263238 100%)',
-      color: '#fff',
-      borderRadius: 16,
-      padding: '12px 18px',
-      maxWidth: 420,
-      fontSize: 16,
-      boxShadow: sender === 'user' ? '0 2px 8px #1976d2aa' : '0 2px 8px #23272faa',
-      marginLeft: sender === 'user' ? 0 : 8,
-      marginRight: sender === 'user' ? 8 : 0,
-      position: 'relative',
-      wordBreak: 'break-word',
-      borderTopRightRadius: sender === 'user' ? 4 : 16,
-      borderTopLeftRadius: sender === 'user' ? 16 : 4,
-      transition: 'background 0.2s',
-    }}>
-      {text}
-      <div style={{ fontSize: 11, color: '#90caf9', marginTop: 6, textAlign: sender === 'user' ? 'right' : 'left' }}>{time}</div>
-    </div>
-  </div>
-);
-
-// Typing indicator
-const TypingIndicator = () => (
-  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 18, marginLeft: 48 }}>
-    <div style={{
-      background: 'linear-gradient(135deg, #23272f 60%, #263238 100%)',
-      borderRadius: 16,
-      padding: '12px 18px',
-      color: '#90caf9',
-      fontSize: 16,
-      display: 'flex',
-      alignItems: 'center',
-      minWidth: 60,
-    }}>
-      <span className="dot" style={{ animation: 'blink 1s infinite', marginRight: 2 }}>●</span>
-      <span className="dot" style={{ animation: 'blink 1s 0.2s infinite', marginRight: 2 }}>●</span>
-      <span className="dot" style={{ animation: 'blink 1s 0.4s infinite' }}>●</span>
-    </div>
-  </div>
-);
-
-// Scroll to bottom button
-const ScrollToBottom = ({ onClick, visible }) => (
-  visible ? (
-    <button onClick={onClick} style={{
-      position: 'absolute',
-      right: 24,
-      bottom: 100,
-      background: 'linear-gradient(135deg, #1976d2 60%, #42a5f5 100%)',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 20,
-      padding: '8px 18px',
-      fontWeight: 600,
-      cursor: 'pointer',
-      boxShadow: '0 2px 8px #1976d2aa',
-      zIndex: 10,
-      fontSize: 15
-    }}>↓ New</button>
-  ) : null
-);
-
-// Main Chat UI
-function CHATUI() {
-  const [query, setQuery] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [showScroll, setShowScroll] = useState(false);
-  const navigate = useNavigate();
-  const messagesEndRef = useRef(null);
-  const chatRef = useRef(null);
-
-  // Scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Show scroll-to-bottom button if not at bottom
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!chatRef.current) return;
-      const { scrollTop, scrollHeight, clientHeight } = chatRef.current;
-      setShowScroll(scrollHeight - scrollTop - clientHeight > 60);
-    };
-    const chatDiv = chatRef.current;
-    if (chatDiv) chatDiv.addEventListener('scroll', handleScroll);
-    return () => chatDiv && chatDiv.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
-
-  // Format time
-  const getTime = () => {
-    const d = new Date();
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  // Handle send
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    const userMessage = { sender: 'user', text: query, time: getTime() };
-    setMessages((prev) => [...prev, userMessage]);
-    setQuery('');
-    setIsTyping(true);
-    try {
-      const res = await fetch('http://localhost:5000/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-      const data = await res.json();
-      // Only use the actual response string, not the whole dictionary
-      const botMessage = { sender: 'bot', text: typeof data === 'string' ? data : data.response, time: getTime() };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch {
-      setMessages((prev) => [...prev, { sender: 'bot', text: 'Error: Unable to fetch response.', time: getTime() }]);
-    } finally {
-      setIsTyping(false);
-    }
-  };
-
-  // Admin click
-  const handleAdminClick = () => navigate('/admin-login');
-
-  // File upload (for advanced chatbot UIs)
-  const handleFileUpload = (e) => {
-    // Placeholder for file upload logic
-    alert('File upload is not implemented in this demo.');
-  };
-
-  // Main container style
-  const containerStyle = {
+// Inline styles for the chatbot UI
+const styles = {
+  container: {
+    width: '90vw', // Slightly smaller than full width
+    maxWidth: 1600, // Cap the width for large screens
+    minWidth: 320,
+    margin: '40px auto', // Center horizontally
+    borderRadius: 24, // Rounded corners
+    boxShadow: '0 8px 32px rgba(0,0,0,0.18)', // Soft shadow
+    background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
+    overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    height: '100vh',
-    background: 'linear-gradient(135deg, #0d1117 60%, #1976d2 100%)',
-    color: '#fff',
-    fontFamily: 'Inter, Roboto, Arial, sans-serif',
-    position: 'relative',
-  };
-
-  // Header style
-  const headerStyle = {
+    minHeight: 600,
+    border: '1.5px solid #e5e7eb', // Slightly thicker border
+  },
+  header: {
     display: 'flex',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '18px 32px 12px 32px',
-    background: 'rgba(25, 118, 210, 0.95)',
+    background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)',
     color: '#fff',
-    borderBottom: '1px solid #263238',
-    fontWeight: 700,
-    fontSize: 22,
-    letterSpacing: 1,
-    zIndex: 2,
-  };
-
-  // Chat area style
-  const chatMessagesStyle = {
-    flex: 1,
-    overflowY: 'auto',
-    padding: '32px 0 16px 0',
-    background: 'transparent',
-    position: 'relative',
-    width: '100%',
-    maxWidth: 700,
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column',
-  };
-
-  // Input area style
-  const chatFormStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '18px 32px',
-    background: 'rgba(25, 118, 210, 0.95)',
-    borderTop: '1px solid #263238',
-    zIndex: 2,
-  };
-
-  const inputStyle = {
-    flex: 1,
-    padding: '12px 16px',
-    border: 'none',
-    borderRadius: 20,
-    fontSize: 16,
-    background: '#23272f',
-    color: '#fff',
-    outline: 'none',
-    boxShadow: '0 2px 8px #1976d2aa',
-  };
-
-  const buttonStyle = {
-    padding: '10px 22px',
-    background: 'linear-gradient(135deg, #1976d2 60%, #42a5f5 100%)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 20,
+    padding: '0.7rem 1.5rem',
     fontWeight: 600,
-    fontSize: 16,
+    fontSize: 18,
+    borderBottom: '1px solid #334155',
+  },
+  headerLeft: { fontWeight: 700, letterSpacing: 1 },
+  headerCenter: {
+    display: 'flex', alignItems: 'center', gap: 10
+  },
+  logo: {
+    width: 38, height: 38, borderRadius: '50%', background: '#fff', objectFit: 'cover', boxShadow: '0 2px 8px #0001',
+  },
+  title: {
+    fontWeight: 800, fontSize: 22, letterSpacing: 1, color: '#facc15', marginLeft: 6
+  },
+  headerRight: {
+    display: 'flex', alignItems: 'center', gap: 12
+  },
+  adminButton: {
+    background: 'linear-gradient(90deg, #facc15 60%, #fbbf24 100%)',
+    color: '#1e293b',
+    border: 'none',
+    borderRadius: 8,
+    padding: '6px 16px',
+    fontWeight: 700,
     cursor: 'pointer',
-    boxShadow: '0 2px 8px #1976d2aa',
+    fontSize: 15,
+    boxShadow: '0 2px 8px #facc1533',
     transition: 'background 0.2s',
+  },
+  adminFloating: {
+    position: 'absolute',
+    top: 18,
+    right: 32,
+    zIndex: 10,
+    background: 'linear-gradient(90deg, #facc15 60%, #fbbf24 100%)',
+    color: '#1e293b',
+    border: 'none',
+    borderRadius: 8,
+    padding: '8px 20px',
+    fontWeight: 700,
+    fontSize: 16,
+    boxShadow: '0 2px 8px #facc1533',
+    transition: 'background 0.2s',
+    cursor: 'pointer',
+  },
+  chatArea: {
+    flex: 1,
+    padding: '1.2rem',
+    overflowY: 'auto',
+    background: 'linear-gradient(135deg,rgb(237, 237, 237) 80%,rgba(203, 208, 213, 0.92) 100%)',
+    display: 'flex', flexDirection: 'column', gap: 12,
+  },
+  message: {
+    maxWidth: '80%',
+    padding: '0.7rem 1.1rem',
+    borderRadius: 16,
+    fontSize: 16,
+    marginBottom: 2,
+    boxShadow: '0 2px 8px #0001',
+    wordBreak: 'break-word',
+    lineHeight: 1.5,
+    display: 'inline-block',
+    animation: 'fadeIn 0.2s',
+  },
+  botMessage: {
+    background: 'linear-gradient(90deg, #e0e7ef 60%, #f8fafc 100%)',
+    color: '#1e293b',
+    alignSelf: 'flex-start',
+    borderTopLeftRadius: 4,
+  },
+  userMessage: {
+    background: 'linear-gradient(90deg, #facc15 60%, #fbbf24 100%)',
+    color: '#1e293b',
+    alignSelf: 'flex-end',
+    borderTopRightRadius: 4,
+  },
+  inputArea: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '1rem',
+    borderTop: '1px solid #e5e7eb',
+    background: '#f8fafc',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    border: '1px solid #e5e7eb',
+    borderRadius: 8,
+    padding: '0.7rem 1rem',
+    fontSize: 16,
+    outline: 'none',
+    background: '#fff',
+    transition: 'border 0.2s',
+  },
+  sendButton: {
+    background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 8,
+    padding: '0.7rem 1.2rem',
+    fontWeight: 700,
+    fontSize: 18,
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px #0002',
+    transition: 'background 0.2s',
+  },
+};
+
+export default function CHATUI() {
+  const [messages, setMessages] = useState([
+    { sender: 'bot', text: "Hello! I'm RAGnarok, an AI assistant. How can I help you today?" }
+  ]);
+  const [input, setInput] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
+  const scrollRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    setMessages(prev => [...prev, { sender: 'user', text: input }]);
+    setIsThinking(true);
+    // Add thinking animation message
+    setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
+
+    try {
+      const response = await fetch('http://localhost:5000/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: input }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      // Remove the thinking animation before adding the real response
+      setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
+      if (data.error) {
+        setMessages(prev => [...prev, { sender: 'bot', text: `Error: ${data.error}` }]);
+      } else {
+        let botText = data.response;
+        if (typeof botText === 'object') {
+          botText = JSON.stringify(botText);
+        }
+        setMessages(prev => [...prev, { sender: 'bot', text: botText }]);
+      }
+    } catch (error) {
+      setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
+      console.error('Error communicating with the backend:', error);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Error: Unable to connect to the server.' }]);
+    } finally {
+      setIsThinking(false);
+    }
+
+    setInput('');
   };
 
-  const iconButtonStyle = {
-    ...buttonStyle,
-    padding: '10px 14px',
-    fontSize: 18,
-    borderRadius: '50%',
-    minWidth: 0,
-    marginLeft: 6,
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') sendMessage();
+  };
+
+  const stylesWithScroll = {
+    ...styles.chatArea,
+    overflowY: 'auto', // Ensure scroll bar is always present
+    maxHeight: '60vh', // Optional: limit height for better scroll
   };
 
   return (
-    <div style={containerStyle}>
-      <header style={headerStyle}>
-        <span style={{ letterSpacing: 2 }}>RAGnarok Chat</span>
-        <div>
-          <button style={buttonStyle} onClick={handleAdminClick}>Admin</button>
+    <div style={{ position: 'relative', minHeight: '100vh', background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)', paddingTop: 30 }}>
+      <button style={styles.adminFloating} onClick={() => navigate('/admin')}>Admin</button>
+      <div style={styles.container}>
+        <header style={styles.header}>
+          <div style={styles.headerLeft}>
+            <img src={require('./iit_logo.png')} alt="IIT Ropar Logo" style={{ height: 34, marginRight: 10, verticalAlign: 'middle', borderRadius: 6, background: '#fff', boxShadow: '0 1px 4px #0001' }} />
+            <span style={{ verticalAlign: 'middle' }}>IIT Ropar</span>
+          </div>
+          <div style={styles.headerCenter}>
+            <img src={RAGnarokLogo} alt="RAGnarok Logo" style={styles.logo} />
+            <span style={styles.title}>RAGnarok</span>
+            <span style={{
+              marginLeft: 18,
+              fontWeight: 500,
+              fontSize: 16,
+              color: '#f1f5f9',
+              letterSpacing: 0.5,
+              background: 'rgba(30,41,59,0.18)',
+              borderRadius: 8,
+              padding: '4px 14px',
+              boxShadow: '0 1px 4px #0001',
+              display: 'inline-block',
+            }}>
+              Official AI Assistant
+            </span>
+          </div>
+          <div style={styles.headerRight}>
+            <img src={require('./logo_iota.png')} alt="Iota Cluster Logo" style={{ height: 40, marginRight: 5, verticalAlign: 'middle', borderRadius: 6, background: '#fff', boxShadow: '0 1px 4px #0001' }} />
+            <span style={{ verticalAlign: 'middle', fontWeight: 900, fontSize: 17, color: '#fff', letterSpacing: 1 }}>Iota Cluster</span>
+          </div>
+        </header>
+        <div style={stylesWithScroll} ref={scrollRef}>
+          <AnimatePresence initial={false}>
+            {messages.map((msg, idx) => (
+              <motion.div
+                key={idx}
+                style={{
+                  ...styles.message,
+                  ...(msg.sender === 'bot' ? styles.botMessage : styles.userMessage),
+                }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {msg.text === '__THINKING__' ? <ThinkingDots /> : <span>{msg.text}</span>}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      </header>
-      <div style={chatMessagesStyle} ref={chatRef}>
-        {messages.map((msg, idx) => (
-          <MessageBubble key={idx} sender={msg.sender} text={msg.text} time={msg.time} />
-        ))}
-        {isTyping && <TypingIndicator />}
-        <div ref={messagesEndRef} />
-        <ScrollToBottom onClick={scrollToBottom} visible={showScroll} />
+        <div style={styles.inputArea}>
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            style={styles.input}
+          />
+          <button onClick={sendMessage} style={styles.sendButton}>
+            ➤
+          </button>
+        </div>
       </div>
-      <form onSubmit={handleSubmit} style={chatFormStyle}>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Type your message..."
-          style={inputStyle}
-          autoFocus
-        />
-        <button type="submit" style={iconButtonStyle} title="Send">➤</button>
-        <button type="button" style={iconButtonStyle} title="Upload file" onClick={handleFileUpload}>📎</button>
-      </form>
-      {/* Animations for dots */}
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-        @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
-      `}</style>
     </div>
   );
 }
 
-export default CHATUI;
+function ThinkingDots() {
+  const [dotCount, setDotCount] = React.useState(1);
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setDotCount(d => (d % 3) + 1);
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <span style={{ fontStyle: 'italic', color: '#1e293b', fontWeight: 700 }}>
+      RAGnarok is thinking{'.'.repeat(dotCount)}
+    </span>
+  );
+}
