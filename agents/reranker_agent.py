@@ -16,13 +16,7 @@ def create_reranker_agent():
         api_key=os.getenv('GEMINI_API_KEY'),
         model="gemini-2.0-flash",
         temperature=0.7,
-        max_tokens=256,
-        system_instruction=(
-            "You are the Reranker agent in the RAGnarok system for IIT Ropar. "
-            "Your job is to rerank the retrieved information based on the user's query and return the most relevant results. "
-            "Focus on maximizing relevance to the query and clarity for the user."
-            "Do not answer the query directly, but return the reranked information only."
-        )
+        max_tokens=256
     )
 
     # Define the reranking prompt template
@@ -33,6 +27,13 @@ def create_reranker_agent():
 
     # Define the reranking tool
     def rerank_tool(inputs):
+        # Debugging log to check input type and structure
+        print(f"Inputs to rerank_tool: {inputs}")
+
+        # Validate input format
+        if not isinstance(inputs, dict):
+            raise ValueError("Invalid input format: 'inputs' must be a dictionary.")
+
         # Accept a single dict input for LangChain compatibility
         retrieved_info = inputs.get("retrieved_info", "")
         query = inputs.get("input", "")
