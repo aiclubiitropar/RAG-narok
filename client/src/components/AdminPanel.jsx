@@ -3,9 +3,36 @@ import { motion } from 'framer-motion';
 import RAGnarokLogo from './RAG_logo.png';
 
 export default function AdminPanel() {
+  const [showLogin, setShowLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [workerStatus, setWorkerStatus] = useState('');
   const [logMessage, setLogMessage] = useState('');
   const [file, setFile] = useState(null);
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/admin/verify_credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+      if (response.ok && result.message === 'Authentication successful.') {
+        setIsAuthenticated(true);
+        setShowLogin(false);
+      } else {
+        alert('Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Error verifying credentials:', error);
+      alert('Error verifying credentials');
+    }
+  };
 
   const fetchWorkerStatus = async () => {
     try {
@@ -117,6 +144,37 @@ export default function AdminPanel() {
   const inputBorder = '#facc15';
   const inputText = '#23232b';
 
+  if (showLogin) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Segoe UI, sans-serif' }}>
+        <div style={{ width: 400, padding: '2em', borderRadius: 12, boxShadow: '0 8px 40px #000a', background: '#fff', textAlign: 'center' }}>
+          <img src={RAGnarokLogo} alt="RAGnarok Logo" style={{ width: 50, marginBottom: 20 }} />
+          <h2 style={{ marginBottom: 20 }}>Admin Login</h2>
+          <input
+            type="email"
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+          />
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{ width: '100%', padding: '10px', marginBottom: '20px', borderRadius: '5px', border: '1px solid #ccc' }}
+          />
+          <button
+            onClick={handleLogin}
+            style={{ padding: '10px 20px', borderRadius: '5px', background: '#facc15', color: '#1e293b', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Segoe UI, sans-serif' }}>
       <div style={{ width: 480, background: panelBg, borderRadius: 24, boxShadow: '0 8px 40px #000a', padding: '2.5em 2.5em 2em 2.5em', color: logoColor, border: 'none', backdropFilter: 'blur(12px)', borderTop: `4px solid ${borderColor}` }}>
@@ -165,7 +223,12 @@ export default function AdminPanel() {
           <span style={{
             fontWeight: 700,
             fontSize: 17,
-            color: workerStatus === 'Running' ? '#34d399' : workerStatus === 'Stopped' ? '#f87171' : '#fbbf24',
+            color:
+              workerStatus === 'Running'
+                ? '#34d399' // green
+                : workerStatus === 'Stopped'
+                ? '#f87171' // red
+                : '#23232b', // black for all other cases
             marginLeft: 10,
             letterSpacing: 1,
             transition: 'color 0.3s',
@@ -218,7 +281,7 @@ export default function AdminPanel() {
 
         {/* Upload JSON */}
         <div style={{
-          background: 'rgba(111, 111, 117, 0.81)',
+          background: 'rgba(163, 161, 161, 0.62)',
           borderRadius: 16,
           padding: '1.2em 1em',
           marginBottom: 32,
@@ -231,7 +294,7 @@ export default function AdminPanel() {
               accept="application/json"
               onChange={e => setFile(e.target.files[0])}
               style={{
-                background: inputBg,
+                background: '#f5f6fa', // lighter color for file input
                 color: inputText,
                 border: `2px solid ${inputBorder}`,
                 borderRadius: 10,

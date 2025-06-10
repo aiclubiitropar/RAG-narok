@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import RAGnarokLogo from './RAG_logo.png';
 
 // Inline styles for the chatbot UI
@@ -102,6 +103,20 @@ const styles = {
     alignSelf: 'flex-end',
     borderTopRightRadius: 4,
   },
+  reasoningBox: {
+    background: 'rgba(30, 41, 59, 0.8)',
+    borderLeft: '3px solid #1e293b',
+    padding: '0.5rem 0.9rem',
+    borderRadius: 12,
+    fontSize: 14,
+    marginBottom: 2,
+    boxShadow: '0 1px 6px #0001',
+    wordBreak: 'break-word',
+    lineHeight: 1.4,
+    display: 'inline-block',
+    animation: 'fadeIn 0.2s',
+    color: '#f8fafc',
+  },
   inputArea: {
     display: 'flex',
     alignItems: 'center',
@@ -140,6 +155,7 @@ export default function CHATUI() {
   ]);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [reasoningStates, setReasoningStates] = useState({}); // {idx: expanded}
   const scrollRef = useRef(null);
   const navigate = useNavigate();
 
@@ -153,7 +169,6 @@ export default function CHATUI() {
     if (!input.trim()) return;
     setMessages(prev => [...prev, { sender: 'user', text: input }]);
     setIsThinking(true);
-    // Add thinking animation message
     setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
 
     try {
@@ -170,14 +185,36 @@ export default function CHATUI() {
       }
 
       const data = await response.json();
-      // Remove the thinking animation before adding the real response
       setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
+
       if (data.error) {
         setMessages(prev => [...prev, { sender: 'bot', text: `Error: ${data.error}` }]);
       } else {
         let botText = data.response;
-        if (typeof botText === 'object') {
-          botText = JSON.stringify(botText);
+        let reasoning = '';
+
+        if (typeof botText === 'string' && botText.includes('<think>')) {
+          const thinkStart = botText.indexOf('<think>') + 7;
+          const thinkEnd = botText.indexOf('</think>');
+          reasoning = botText.substring(thinkStart, thinkEnd);
+          botText = botText.substring(thinkEnd + 8).trim();
+        }
+
+        let reasoningIdx = null;
+        if (reasoning) {
+          setMessages(prev => {
+            reasoningIdx = prev.length;
+            setReasoningStates(states => ({ ...states, [reasoningIdx]: true }));
+            return [...prev, { sender: 'bot', text: `**Reasoning:** ${reasoning}`, type: 'reasoning' }];
+          });
+          setTimeout(() => {
+            setReasoningStates(states => {
+              if (states[reasoningIdx] !== undefined) {
+                return { ...states, [reasoningIdx]: false };
+              }
+              return states;
+            });
+          }, 2000);
         }
         setMessages(prev => [...prev, { sender: 'bot', text: botText }]);
       }
@@ -188,7 +225,6 @@ export default function CHATUI() {
     } finally {
       setIsThinking(false);
     }
-
     setInput('');
   };
 
@@ -226,7 +262,7 @@ export default function CHATUI() {
               boxShadow: '0 1px 4px #0001',
               display: 'inline-block',
             }}>
-              Official AI Assistant
+              AI Assistant
             </span>
           </div>
           <div style={styles.headerRight}>
@@ -236,21 +272,58 @@ export default function CHATUI() {
         </header>
         <div style={stylesWithScroll} ref={scrollRef}>
           <AnimatePresence initial={false}>
-            {messages.map((msg, idx) => (
-              <motion.div
-                key={idx}
-                style={{
-                  ...styles.message,
-                  ...(msg.sender === 'bot' ? styles.botMessage : styles.userMessage),
-                }}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {msg.text === '__THINKING__' ? <ThinkingDots /> : <span>{msg.text}</span>}
-              </motion.div>
-            ))}
+            {messages.map((msg, idx) => {
+              if (msg.type === 'reasoning') {
+                const expanded = reasoningStates[idx] !== false;
+                return expanded ? (
+                  <motion.div
+                    key={idx}
+                    style={{ ...styles.message, ...styles.reasoningBox, marginBottom: 0, cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <span
+                      style={{ marginRight: 8, display: 'flex', alignItems: 'flex-end', cursor: 'pointer', marginTop: -2 }}
+                      onClick={() => setReasoningStates(states => ({ ...states, [idx]: false }))}
+                    >
+                      <FaChevronDown size={18} />
+                    </span>
+                    <span style={{ fontWeight: 700, color: '#fbbf24', marginRight: 6 }}>Reasoning:</span>
+                    <span style={{ fontWeight: 400 }}>{msg.text.replace('**Reasoning:** ', '')}</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={idx}
+                    style={{ ...styles.message, ...styles.reasoningBox, marginBottom: 7, minHeight: 0, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', cursor: 'pointer', background: 'transparent', borderLeft: 'none', color: '#fbbf24', boxShadow: 'none', width: 'fit-content' }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => setReasoningStates(states => ({ ...states, [idx]: true }))}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'flex-end', marginTop: -2, marginRight: 4 }}><FaChevronRight size={18} /></span>
+                    <span style={{ fontWeight: 700, color: '#fbbf24', fontSize: 14 }}>Reasoning</span>
+                  </motion.div>
+                );
+              }
+              return (
+                <motion.div
+                  key={idx}
+                  style={{
+                    ...styles.message,
+                    ...(msg.sender === 'bot' ? styles.botMessage : styles.userMessage),
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {msg.text === '__THINKING__' ? <ThinkingDots /> : <span>{msg.text}</span>}
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
         <div style={styles.inputArea}>
