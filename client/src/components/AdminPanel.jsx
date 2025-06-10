@@ -13,7 +13,7 @@ export default function AdminPanel() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:5000/admin/verify_credentials', {
+      const response = await fetch('https://rag-narok-gi3v.onrender.com/admin/verify_credentials', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ export default function AdminPanel() {
 
   const fetchWorkerStatus = async () => {
     try {
-      const res = await fetch('http://localhost:5000/admin/worker_status', {
+      const res = await fetch('https://rag-narok-gi3v.onrender.com/admin/worker_status', {
         method: 'GET',
         headers: {
           'X-Admin-Email': 'club.iotacluster@iitrpr.ac.in', // Ensure the admin email is sent
@@ -55,7 +55,7 @@ export default function AdminPanel() {
 
   const startWorker = async () => {
     try {
-      const res = await fetch('http://localhost:5000/admin/start_shortterm_worker', {
+      const res = await fetch('https://rag-narok-gi3v.onrender.com/admin/start_shortterm_worker', {
         method: 'POST',
       });
       const data = await res.json();
@@ -64,7 +64,7 @@ export default function AdminPanel() {
 
       // Continuously fetch worker status until stopped
       const intervalId = setInterval(async () => {
-        const statusRes = await fetch('http://localhost:5000/admin/worker_status');
+        const statusRes = await fetch('https://rag-narok-gi3v.onrender.com/admin/worker_status');
         const statusData = await statusRes.json();
         if (!statusData.running) {
           clearInterval(intervalId);
@@ -78,7 +78,7 @@ export default function AdminPanel() {
 
   const stopWorker = async () => {
     try {
-      const res = await fetch('http://localhost:5000/admin/stop_shortterm_worker', {
+      const res = await fetch('https://rag-narok-gi3v.onrender.com/admin/stop_shortterm_worker', {
         method: 'POST',
       });
       const data = await res.json();
@@ -91,7 +91,7 @@ export default function AdminPanel() {
 
   const downloadLogs = async () => {
     try {
-      const res = await fetch('http://localhost:5000/admin/logs');
+      const res = await fetch('https://rag-narok-gi3v.onrender.com/admin/logs');
       if (res.status === 404) {
         setLogMessage('Log file not found.');
         return;
@@ -121,7 +121,7 @@ export default function AdminPanel() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('http://localhost:5000/admin/upload_json', {
+      const res = await fetch('https://rag-narok-gi3v.onrender.com/admin/upload_json', {
         method: 'POST',
         body: formData,
       });
