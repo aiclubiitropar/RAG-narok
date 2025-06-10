@@ -1,3 +1,5 @@
+from re import T
+from urllib import response
 from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
@@ -195,15 +197,43 @@ def chat():
     try:
         data = request.get_json()
         query = data.get('query')
+        
         if not query:
-            return jsonify({'error': 'No query provided.'}), 400
+            return jsonify({'error': 'No query provided'}), 400
 
-        response = rg.invoke(query)
+        response_text = rg.invoke(query)
+        print(f"RAGnarok response: {response_text}")
+        
+        return jsonify({'response': response_text}), 200
 
-        return jsonify({'response': response}), 200
     except Exception as e:
         app.logger.error(f"Unexpected error in /chat endpoint: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
+
+
+# --- Admin Authentication Endpoint ---
+@app.route('/admin/verify_credentials', methods=['POST'])
+def verify_credentials():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required.'}), 400
+
+        admin_email = os.getenv('ADMIN_EMAIL')
+        admin_password = os.getenv('ADMIN_PASSWORD')
+
+        if email == admin_email and password == admin_password:
+            return jsonify({'message': 'Authentication successful.'}), 200
+        else:
+            return jsonify({'error': 'Invalid credentials.'}), 401
+
+    except Exception as e:
+        app.logger.error(f"Error during admin authentication: {e}")
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
+
 
 # Flag to ensure initialization logic runs only once
 initialized = False
@@ -236,4 +266,4 @@ def cleanup():
         pass
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True, threaded=True)
