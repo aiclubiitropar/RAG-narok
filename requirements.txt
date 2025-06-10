@@ -10,3 +10,6 @@ werkzeug
 threading
 groq
 langchain-groq
+grpcio
+grpcio-status
+gunicorn
