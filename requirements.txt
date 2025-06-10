@@ -1,15 +1,9 @@
 requests
 beautifulsoup4
-lxml
 langchain-community
-langchain-google-genai
-langchain-openai
 sentence-transformers
-faiss-cpu
 python-dotenv
 chromadb
-FlagEmbedding
-langgraph
 flask
 flask-cors
 werkzeug
