@@ -172,7 +172,7 @@ export default function CHATUI() {
     setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
 
     try {
-      const response = await fetch('https://rag-narok-gi3v.onrender.com/chat', {
+      const response = await fetch('http://localhost:5000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
