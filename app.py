@@ -22,7 +22,12 @@ from tools.email_scraper import EmailScraper
 from pipeline.RAGnarok import RAGnarok
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[
+    "https://rag-narok-ul49.onrender.com",
+    "https://rag-narok.vercel.app",
+    "https://rag-narok-aiclubiitropars-projects.vercel.app",
+    "http://localhost:3000"
+])
 
 # Define persistent directories for long-term and short-term databases
 LONG_TERM_PREFIX = "longterm_db"
