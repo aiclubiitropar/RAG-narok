@@ -67,8 +67,9 @@ short_db = ShortTermDatabase(
     fetch_latest_email=fetch_latest_email
 )
 
-# Ensure RAGnarok is instantiated correctly
-rg = RAGnarok(long_db, short_db)
+def get_ragnarok():
+    # Instantiate RAGnarok with fresh memory
+    return RAGnarok(long_db, short_db)
 
 # --- Short-term DB background worker management ---
 global_worker_thread = None
@@ -202,6 +203,9 @@ def chat():
         
         if not query:
             return jsonify({'error': 'No query provided'}), 400
+        
+        rg = get_ragnarok()
+        app.logger.info(f"Received query: {query}")
 
         response_text = rg.invoke(query)
         print(f"RAGnarok response: {response_text}")
