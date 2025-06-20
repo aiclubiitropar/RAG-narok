@@ -18,9 +18,12 @@ from vector_stores.S_vecdB import ShortTermDatabase
 # Load environment variables
 load_dotenv()
 
+# Note: Embedding logic is now handled internally in LongTermDatabase and ShortTermDatabase using get_embedding API.
+# Do not pass or set any model/embedding function when initializing these classes.
+
 # Initialize vector DBs
-longdb = LongTermDatabase(persist_directory="longterm_db")
-shortdb = ShortTermDatabase(client_settings=Settings(persist_directory="shortterm_db"))
+# longdb = LongTermDatabase(persist_directory="longterm_db")
+# shortdb = ShortTermDatabase(client_settings=Settings(persist_directory="shortterm_db"))
 
 # Inject current day, date, and time into instructions
 current_time = time.strftime('%A, %Y-%m-%d %H:%M:%S')
