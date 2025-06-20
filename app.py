@@ -33,6 +33,10 @@ CORS(app, origins=[
 LONG_TERM_PREFIX = "longterm_db"
 SHORT_TERM_PREFIX = "shortterm_db"
 
+# Ensure persistent directories exist
+os.makedirs(LONG_TERM_PREFIX, exist_ok=True)
+os.makedirs(SHORT_TERM_PREFIX, exist_ok=True)
+
 # Initialize databases with Qdrant-compatible arguments
 long_db = LongTermDatabase(collection_prefix=LONG_TERM_PREFIX)
 
