@@ -281,6 +281,13 @@ def cleanup():
     except Exception:
         pass
 
+@app.route('/admin/logs', methods=['GET'])
+def download_logs():
+    log_path = 'rag.log'  # Adjust path if your log file is elsewhere
+    if not os.path.exists(log_path):
+        return jsonify({'error': 'Log file not found.'}), 404
+    return send_file(log_path, as_attachment=True, download_name='rag.txt')
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 5000))
