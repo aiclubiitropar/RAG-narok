@@ -1,4 +1,3 @@
-from re import T
 from urllib import response
 from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
