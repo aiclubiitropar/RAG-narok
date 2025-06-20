@@ -67,7 +67,7 @@ short_db = ShortTermDatabase(
     fetch_latest_email=fetch_latest_email
 )
 
-@app.route('/', methods=['GET'])
+@app.route('/initialize', methods=['GET'])
 def get_ragnarok():
     global rg
     rg = RAGnarok(long_db, short_db)
