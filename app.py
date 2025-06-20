@@ -67,9 +67,11 @@ short_db = ShortTermDatabase(
     fetch_latest_email=fetch_latest_email
 )
 
+@app.route('/', methods=['GET'])
 def get_ragnarok():
-    # Instantiate RAGnarok with fresh memory
-    return RAGnarok(long_db, short_db)
+    global rg
+    rg = RAGnarok(long_db, short_db)
+    app.logger.info("RAGnarok instance created successfully.")
 
 # --- Short-term DB background worker management ---
 global_worker_thread = None
@@ -198,13 +200,18 @@ def worker_status():
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
+        global rg
+        # Ensure RAGnarok instance is initialized
+        if 'rg' not in globals():
+            app.logger.error("RAGnarok instance is not initialized. Please initialize it first.")
+            return jsonify({'error': 'RAGnarok instance not initialized.'}), 500
         data = request.get_json()
         query = data.get('query')
         
         if not query:
             return jsonify({'error': 'No query provided'}), 400
         
-        rg = get_ragnarok()
+        # rg = get_ragnarok()
         app.logger.info(f"Received query: {query}")
 
         response_text = rg.invoke(query)
