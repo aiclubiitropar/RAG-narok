@@ -5,7 +5,7 @@ from langchain.tools import Tool
 from langchain.agents import initialize_agent, AgentType
 from langchain.memory import ConversationBufferMemory
 from langchain_groq import ChatGroq
-from chromadb.config import Settings
+# from chromadb.config import Settings
 from langchain_core.exceptions import OutputParserException
 import time
 
