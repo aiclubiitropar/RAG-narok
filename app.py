@@ -22,22 +22,15 @@ from vector_stores.S_vecdB import ShortTermDatabase
 from tools.email_scraper import EmailScraper
 from pipeline.RAGnarok import RAGnarok
 
-# Import Settings for ShortTermDatabase initialization
-from vector_stores.S_vecdB import Settings
-
 app = Flask(__name__)
 CORS(app)
 
 # Define persistent directories for long-term and short-term databases
-LONG_TERM_DIR = "longterm_db"
-SHORT_TERM_DIR = "shortterm_db"
+LONG_TERM_PREFIX = "longterm_db"
+SHORT_TERM_PREFIX = "shortterm_db"
 
-# Ensure persistent directories exist
-os.makedirs(LONG_TERM_DIR, exist_ok=True)
-os.makedirs(SHORT_TERM_DIR, exist_ok=True)
-
-# Initialize databases with persistent directories
-long_db = LongTermDatabase(persist_directory=LONG_TERM_DIR)
+# Initialize databases with Qdrant-compatible arguments
+long_db = LongTermDatabase(collection_prefix=LONG_TERM_PREFIX)
 
 # Update the fetch_latest_email callback to use EmailScraper
 def fetch_latest_email():
@@ -61,7 +54,8 @@ def fetch_latest_email():
 
 # Pass the callback to ShortTermDatabase
 short_db = ShortTermDatabase(
-    client_settings=Settings(persist_directory=SHORT_TERM_DIR),
+    short_term_prefix=SHORT_TERM_PREFIX,
+    long_term_prefix=LONG_TERM_PREFIX,
     fetch_latest_email=fetch_latest_email
 )
 
@@ -244,11 +238,11 @@ def initialize_databases():
     if not initialized:
         initialized = True
         try:
-            if not os.listdir(LONG_TERM_DIR):
+            if not os.listdir(LONG_TERM_PREFIX):
                 app.logger.info("Long-term database is empty. Initializing with default data.")
                 # Add logic to populate long-term database with initial data if needed
 
-            if not os.listdir(SHORT_TERM_DIR):
+            if not os.listdir(SHORT_TERM_PREFIX):
                 app.logger.info("Short-term database is empty. Initializing with default data.")
                 # Add logic to populate short-term database with initial data if needed
 
@@ -265,6 +259,5 @@ def cleanup():
     except Exception:
         pass
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True, threaded=True)
