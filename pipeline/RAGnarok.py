@@ -14,9 +14,9 @@ from vector_stores.S_vecdB import ShortTermDatabase
 from langchain_core.exceptions import OutputParserException
 
 
-# Initialize vector DBs
-longdb = LongTermDatabase(persist_directory="longterm_db")
-shortdb = ShortTermDatabase(client_settings=Settings(persist_directory="shortterm_db"))
+# # Initialize vector DBs
+# longdb = LongTermDatabase(persist_directory="longterm_db")
+# shortdb = ShortTermDatabase(client_settings=Settings(persist_directory="shortterm_db"))
 
 
 class RAGnarok:
