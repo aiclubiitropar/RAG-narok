@@ -66,7 +66,7 @@ def wake_llm(longdb, shortdb, api_key=os.getenv("GROQ_API_KEY")):
 
     llm = ChatGroq(
         groq_api_key=api_key,
-        model_name="deepseek-r1-distill-llama-70b",
+        model_name=os.getenv("GROQ_MODEL_NAME", "groq/groq-llama-3.1-70b"),
         temperature=0.6,
         max_tokens=4096,
         top_p=0.95,
