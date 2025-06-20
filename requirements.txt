@@ -176,3 +176,5 @@ zipp==3.21.0
 zlib-state==0.1.9
 zstandard==0.23.0
 gunicorn==23.0.0
+gradio_client
+qdrant-client
