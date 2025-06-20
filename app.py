@@ -67,14 +67,14 @@ short_db = ShortTermDatabase(
     fetch_latest_email=fetch_latest_email
 )
 
-@app.route('/initialize', methods=['GET'])
+@app.route('/', methods=['GET'])
 def get_ragnarok():
     global rg
     rg = RAGnarok(long_db, short_db)
     app.logger.info("RAGnarok instance created successfully.")
     return jsonify({"message": "RAGnarok initialized"}), 200
 
-global rg = RAGnarok(long_db, short_db)
+rg = RAGnarok(long_db, short_db)
 
 # --- Short-term DB background worker management ---
 global_worker_thread = None
