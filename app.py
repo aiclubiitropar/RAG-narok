@@ -74,6 +74,8 @@ def get_ragnarok():
     app.logger.info("RAGnarok instance created successfully.")
     return jsonify({"message": "RAGnarok initialized"}), 200
 
+global rg = RAGnarok(long_db, short_db)
+
 # --- Short-term DB background worker management ---
 global_worker_thread = None
 global_worker_stop_event = threading.Event()
