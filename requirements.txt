@@ -18,6 +18,7 @@ charset-normalizer==3.4.2
 click==8.1.8
 colorama==0.4.6
 coloredlogs==15.0.1
+chromadb
 dataclasses-json==0.6.7
 datasets==3.6.0
 Deprecated==1.2.18
