@@ -5,7 +5,7 @@ from langchain.tools import Tool
 from langchain.agents import initialize_agent, AgentType
 from langchain.memory import ConversationBufferMemory
 from langchain_groq import ChatGroq
-#from chromadb.config import Settings
+from chromadb.config import Settings
 from langchain_core.exceptions import OutputParserException
 import time
 
@@ -41,7 +41,7 @@ INSTRUCTIONS = (
 )
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
-def wake_llm(longdb, shortdb, api_key=os.getenv("GROQ_API_KEY")):
+def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=os.getenv("GROQ_API_KEY")):
     def retrieve_rag(query):
         return retrieval_tool(query, longdb, shortdb)
 
@@ -66,7 +66,7 @@ def wake_llm(longdb, shortdb, api_key=os.getenv("GROQ_API_KEY")):
 
     llm = ChatGroq(
         groq_api_key=api_key,
-        model_name=os.getenv("GROQ_MODEL_NAME"),
+        model_name=model,
         temperature=0.6,
         max_tokens=4096,
         top_p=0.95,
@@ -84,6 +84,7 @@ def wake_llm(longdb, shortdb, api_key=os.getenv("GROQ_API_KEY")):
         max_iterations=2,
         max_time=10,
     )
+    
     return llm_agent
 
 
