@@ -8,7 +8,7 @@ import traceback
 from functools import wraps
 from flask import session
 import uuid
-from flask import make_response
+from flask import make_response, g
 
 # Ensure project root is on path for imports
 import sys
@@ -110,6 +110,18 @@ def require_admin(f):
 # --- Global dictionary for user RAGnarok objects ---
 user_rag_dict = {}
 
+@app.before_request
+def ensure_user_rag():
+    # Only run for /chat endpoint (or any endpoint that needs per-user RAGnarok)
+    if request.endpoint == 'chat':
+        user_uuid = request.cookies.get('user_uuid')
+        if not user_uuid:
+            user_uuid = str(uuid.uuid4())
+        g.user_uuid = user_uuid
+        if user_uuid not in user_rag_dict:
+            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db)
+        g.user_rg = user_rag_dict[user_uuid]
+
 # --- API Endpoints ---
 @app.route('/admin/upload_json', methods=['POST'])
 @require_admin
@@ -208,19 +220,11 @@ def chat():
         if not query:
             return jsonify({'error': 'No query provided'}), 400
 
-        # --- Per-user UUID and RAGnarok instance management ---
-        user_uuid = request.cookies.get('user_uuid')
-        if not user_uuid:
-            user_uuid = str(uuid.uuid4())
-        if user_uuid not in user_rag_dict:
-            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db)
-        user_rg = user_rag_dict[user_uuid]
-
-        response_text = user_rg.invoke(query)
+        response_text = g.user_rg.invoke(query)
         print(f"RAGnarok response: {response_text}")
 
         resp = make_response(jsonify({'response': response_text}), 200)
-        resp.set_cookie('user_uuid', user_uuid, httponly=True, samesite='Lax')
+        resp.set_cookie('user_uuid', g.user_uuid, httponly=True, samesite='Lax')
         return resp
 
     except Exception as e:
