@@ -115,22 +115,6 @@ user_rag_dict = {}
 # --- Global model variable ---
 model = 'deepseek-r1-distill-llama-70b'  # Default model
 
-@app.before_request
-def ensure_user_rag():
-    # Only run for /chat endpoint (or any endpoint that needs per-user RAGnarok)
-    global user_rag_dict, model
-    if request.endpoint == 'chat':
-        user_uuid = session.get('user_uuid')
-        app.logger.info(f"Session user_uuid0: {user_uuid}")
-        if not user_uuid:
-            user_uuid = str(uuid.uuid4())
-            session['user_uuid'] = user_uuid
-        if user_uuid not in user_rag_dict:
-            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db, model=model)
-        else:
-            session['user_uuid'] = user_uuid
-        # No need to store user_rg in session, just use user_rag_dict[user_uuid] in /chat
-
 @app.route('/admin/change_model', methods=['POST'])
 def change_model():
     global model
@@ -244,8 +228,19 @@ def chat():
         if not query:
             return jsonify({'error': 'No query provided'}), 400
 
+        # --- Begin ensure_user_rag logic ---
+        global user_rag_dict, model
         user_uuid = session.get('user_uuid')
-        app.logger.info(f"Session user_uuid1: {user_uuid}")
+        if not user_uuid:
+            user_uuid = str(uuid.uuid4())
+            session['user_uuid'] = user_uuid
+        if user_uuid not in user_rag_dict:
+            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db, model=model)
+        else:
+            session['user_uuid'] = user_uuid
+        app.logger.info(f"Session user_uuid: {user_uuid}")
+        # --- End ensure_user_rag logic ---
+
         user_rg = user_rag_dict[user_uuid]
         response_text = user_rg.invoke(query)
         print(f"RAGnarok response: {response_text}")
