@@ -74,6 +74,7 @@ global_worker_thread = None
 global_worker_stop_event = threading.Event()
 global_worker_running = False  # New global flag for worker status
 
+
 def shortterm_worker():
     global global_worker_running
     global_worker_running = True
@@ -110,17 +111,36 @@ def require_admin(f):
 # --- Global dictionary for user RAGnarok objects ---
 user_rag_dict = {}
 
+# --- Global model variable ---
+model = 'deepseek-r1-distill-llama-70b'  # Default model
+
 @app.before_request
 def ensure_user_rag():
     # Only run for /chat endpoint (or any endpoint that needs per-user RAGnarok)
+    global user_rag_dict, model
     if request.endpoint == 'chat':
         user_uuid = request.cookies.get('user_uuid')
         if not user_uuid:
             user_uuid = str(uuid.uuid4())
         g.user_uuid = user_uuid
         if user_uuid not in user_rag_dict:
-            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db)
+            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db, model=model)
         g.user_rg = user_rag_dict[user_uuid]
+
+@app.route('/admin/change_model', methods=['POST'])
+def change_model():
+    global model
+    try:
+        data = request.get_json()
+        new_model = data.get('model')
+        if not new_model:
+            return jsonify({'error': 'No model provided.'}), 400
+        model = new_model
+        app.logger.info(f"Model changed to: {model}")
+        return jsonify({'message': f'Model changed to {model}.'}), 200
+    except Exception as e:
+        app.logger.error(f"Error changing model: {e}")
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
 
 # --- API Endpoints ---
 @app.route('/admin/upload_json', methods=['POST'])
