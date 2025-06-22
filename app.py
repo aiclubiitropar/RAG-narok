@@ -119,13 +119,16 @@ def ensure_user_rag():
     # Only run for /chat endpoint (or any endpoint that needs per-user RAGnarok)
     global user_rag_dict, model
     if request.endpoint == 'chat':
-        user_uuid = request.cookies.get('user_uuid')
+        user_uuid = session.get('user_uuid')
+        app.logger.info(f"Session user_uuid0: {user_uuid}")
         if not user_uuid:
             user_uuid = str(uuid.uuid4())
-        g.user_uuid = user_uuid
+            session['user_uuid'] = user_uuid
         if user_uuid not in user_rag_dict:
             user_rag_dict[user_uuid] = RAGnarok(long_db, short_db, model=model)
-        g.user_rg = user_rag_dict[user_uuid]
+        else:
+            session['user_uuid'] = user_uuid
+        # No need to store user_rg in session, just use user_rag_dict[user_uuid] in /chat
 
 @app.route('/admin/change_model', methods=['POST'])
 def change_model():
@@ -228,8 +231,8 @@ def worker_status():
         app.logger.info("Worker thread is running.")
     return jsonify(status)
 
-# Ensure RAGnarok is instantiated correctly
-rg = RAGnarok(long_db, short_db)
+# # Ensure RAGnarok is instantiated correctly
+# rg = RAGnarok(long_db, short_db)
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -240,11 +243,14 @@ def chat():
         if not query:
             return jsonify({'error': 'No query provided'}), 400
 
-        response_text = g.user_rg.invoke(query)
+        user_uuid = session.get('user_uuid')
+        app.logger.info(f"Session user_uuid1: {user_uuid}")
+        user_rg = user_rag_dict[user_uuid]
+        response_text = user_rg.invoke(query)
         print(f"RAGnarok response: {response_text}")
 
         resp = make_response(jsonify({'response': response_text}), 200)
-        resp.set_cookie('user_uuid', g.user_uuid, httponly=True, samesite='Lax')
+        resp.set_cookie('user_uuid', user_uuid, httponly=True, samesite='Lax')
         return resp
 
     except Exception as e:
