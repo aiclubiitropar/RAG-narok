@@ -24,6 +24,7 @@ from tools.email_scraper import EmailScraper
 from pipeline.RAGnarok import RAGnarok
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "your-default-secret-key")
 CORS(app, origins=[
     "https://rag-narok-ul49.onrender.com",
     "https://rag-narok.vercel.app",
