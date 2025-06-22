@@ -7,6 +7,8 @@ import os
 import traceback
 from functools import wraps
 from flask import session
+import uuid
+from flask import make_response
 
 # Ensure project root is on path for imports
 import sys
@@ -67,15 +69,6 @@ short_db = ShortTermDatabase(
     fetch_latest_email=fetch_latest_email
 )
 
-@app.route('/', methods=['GET'])
-def get_ragnarok():
-    global rg
-    rg = RAGnarok(long_db, short_db)
-    app.logger.info("RAGnarok instance created successfully.")
-    return jsonify({"message": "RAGnarok initialized"}), 200
-
-rg = RAGnarok(long_db, short_db)
-
 # --- Short-term DB background worker management ---
 global_worker_thread = None
 global_worker_stop_event = threading.Event()
@@ -113,6 +106,9 @@ def require_admin(f):
         # Removed admin email check
         return f(*args, **kwargs)
     return decorated
+
+# --- Global dictionary for user RAGnarok objects ---
+user_rag_dict = {}
 
 # --- API Endpoints ---
 @app.route('/admin/upload_json', methods=['POST'])
@@ -200,27 +196,32 @@ def worker_status():
         app.logger.info("Worker thread is running.")
     return jsonify(status)
 
+# Ensure RAGnarok is instantiated correctly
+rg = RAGnarok(long_db, short_db)
+
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
-        global rg
-        # Ensure RAGnarok instance is initialized
-        if 'rg' not in globals():
-            app.logger.error("RAGnarok instance is not initialized. Please initialize it first.")
-            return jsonify({'error': 'RAGnarok instance not initialized.'}), 500
         data = request.get_json()
         query = data.get('query')
         
         if not query:
             return jsonify({'error': 'No query provided'}), 400
-        
-        # rg = get_ragnarok()
-        app.logger.info(f"Received query: {query}")
 
-        response_text = rg.invoke(query)
+        # --- Per-user UUID and RAGnarok instance management ---
+        user_uuid = request.cookies.get('user_uuid')
+        if not user_uuid:
+            user_uuid = str(uuid.uuid4())
+        if user_uuid not in user_rag_dict:
+            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db)
+        user_rg = user_rag_dict[user_uuid]
+
+        response_text = user_rg.invoke(query)
         print(f"RAGnarok response: {response_text}")
-        
-        return jsonify({'response': response_text}), 200
+
+        resp = make_response(jsonify({'response': response_text}), 200)
+        resp.set_cookie('user_uuid', user_uuid, httponly=True, samesite='Lax')
+        return resp
 
     except Exception as e:
         app.logger.error(f"Unexpected error in /chat endpoint: {e}")
@@ -280,7 +281,7 @@ def cleanup():
         short_db.close()
     except Exception:
         pass
-
+    
 @app.route('/admin/logs', methods=['GET'])
 def download_logs():
     log_path = 'rag.log'  # Adjust path if your log file is elsewhere
