@@ -1,7 +1,7 @@
 import sys
 import os
 from dotenv import load_dotenv
-# from chromadb.config import Settings
+from chromadb.config import Settings
 
 # Set up environment and paths
 load_dotenv()
@@ -20,8 +20,8 @@ from langchain_core.exceptions import OutputParserException
 
 
 class RAGnarok:
-    def __init__(self, longdb, shortdb):
-        self.llm_agent = wake_llm(longdb, shortdb)
+    def __init__(self, longdb, shortdb, model="deepseek-r1-distill-llama-70b"):
+        self.llm_agent = wake_llm(longdb, shortdb, model=model)
 
     def invoke(self, query: str) -> str:
         try:
