@@ -10,6 +10,19 @@ export default function AdminPanel() {
   const [workerStatus, setWorkerStatus] = useState('');
   const [logMessage, setLogMessage] = useState('');
   const [file, setFile] = useState(null);
+  const [selectedModel, setSelectedModel] = useState('deepseek-r1-distill-llama-70b');
+
+  const modelOptions = [
+    'deepseek-r1-distill-llama-70b',
+    'qwen-qwq-32b',
+    'qwen/qwen3-32b',
+    'llama-3.1-8b-instant',
+    'llama-3.3-70b-versatile',
+    'llama3-70b-8192',
+    'llama3-8b-8192',
+    'meta-llama/llama-4-maverick-17b-128e-instruct',
+    'meta-llama/llama-4-scout-17b-16e-instruct'
+  ];
 
   const handleLogin = async () => {
     try {
@@ -129,6 +142,20 @@ export default function AdminPanel() {
       setLogMessage(data.message || 'File uploaded successfully.');
     } catch (error) {
       setLogMessage('Error uploading file.');
+    }
+  };
+
+  const handleChangeModel = async () => {
+    try {
+      const res = await fetch('https://rag-narok-ul49.onrender.com/admin/change_model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: selectedModel })
+      });
+      const data = await res.json();
+      setLogMessage(data.message || 'Model changed successfully.');
+    } catch (error) {
+      setLogMessage('Error changing model.');
     }
   };
 
@@ -331,8 +358,8 @@ export default function AdminPanel() {
           </form>
         </div>
 
-        {/* Download Logs */}
-        <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        {/* Download Logs and Model Selector */}
+        <div style={{ textAlign: 'center', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
           <button
             onClick={downloadLogs}
             style={{
@@ -354,8 +381,49 @@ export default function AdminPanel() {
             onBlur={e => e.currentTarget.style.boxShadow = accentShadow}
             onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 2px #facc1555'}
           >Download Logs</button>
-          <div style={{ color: '#facc15', fontWeight: 600, fontSize: 15, minHeight: 24, marginTop: 6 }}>{logMessage}</div>
+          <select
+            value={selectedModel}
+            onChange={e => setSelectedModel(e.target.value)}
+            style={{
+              background: '#f5f6fa',
+              color: inputText,
+              border: `2px solid ${inputBorder}`,
+              borderRadius: 10,
+              padding: '8px 12px',
+              fontSize: 15,
+              fontWeight: 500,
+              outline: 'none',
+              minWidth: 220,
+              marginBottom: 8
+            }}
+          >
+            {modelOptions.map(model => (
+              <option key={model} value={model}>{model}</option>
+            ))}
+          </select>
+          <button
+            onClick={handleChangeModel}
+            style={{
+              background: buttonBg,
+              color: buttonText,
+              border: 'none',
+              borderRadius: 12,
+              padding: '10px 22px',
+              fontWeight: 700,
+              fontSize: 16,
+              cursor: 'pointer',
+              boxShadow: accentShadow,
+              marginBottom: 8,
+              transition: 'transform 0.1s, box-shadow 0.2s',
+              outline: 'none',
+            }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            onBlur={e => e.currentTarget.style.boxShadow = accentShadow}
+            onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 2px #facc1555'}
+          >Change Model</button>
         </div>
+        <div style={{ color: '#facc15', fontWeight: 600, fontSize: 15, minHeight: 24, marginTop: 6 }}>{logMessage}</div>
       </div>
     </div>
   );
