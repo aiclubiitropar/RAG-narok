@@ -9,6 +9,7 @@ from functools import wraps
 from flask import session
 import uuid
 from flask import make_response, g
+import time
 
 # Ensure project root is on path for imports
 import sys
@@ -109,8 +110,16 @@ def require_admin(f):
         return f(*args, **kwargs)
     return decorated
 
-# --- Global dictionary for user RAGnarok objects ---
-user_rag_dict = {}
+# --- Global dictionary for user RAGnarok objects with last access time ---
+user_rag_dict = {}  # {user_uuid: {'rag': RAGnarok, 'last_access': timestamp}}
+USER_RAG_TIMEOUT = 30 * 60  # 30 minutes in seconds
+
+def cleanup_user_rag_dict():
+    """Remove user sessions that have been inactive for more than USER_RAG_TIMEOUT seconds."""
+    now = time.time()
+    to_delete = [uuid for uuid, v in user_rag_dict.items() if now - v['last_access'] > USER_RAG_TIMEOUT]
+    for uuid in to_delete:
+        del user_rag_dict[uuid]
 
 # --- Global model variable ---
 model = 'deepseek-r1-distill-llama-70b'  # Default model
@@ -230,11 +239,15 @@ def chat():
         if not user_uuid:
             return jsonify({'error': 'No user_uuid provided'}), 400
         global user_rag_dict, model
+        cleanup_user_rag_dict()  # Clean up expired sessions on each chat
         print(f"Received user_uuid: {user_uuid}")
         print(f"Current user_rag_dict keys: {list(user_rag_dict.keys())}")
+        now = time.time()
         if user_uuid not in user_rag_dict:
-            user_rag_dict[user_uuid] = RAGnarok(long_db, short_db, model=model)
-        user_rg = user_rag_dict[user_uuid]
+            user_rag_dict[user_uuid] = {'rag': RAGnarok(long_db, short_db, model=model), 'last_access': now}
+        else:
+            user_rag_dict[user_uuid]['last_access'] = now
+        user_rg = user_rag_dict[user_uuid]['rag']
         response_text = user_rg.invoke(query)
         print(f"RAGnarok response: {response_text}")
         resp = make_response(jsonify({'response': response_text}), 200)
