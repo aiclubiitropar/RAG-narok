@@ -166,11 +166,24 @@ export default function CHATUI() {
     }
   }, [messages]);
 
+  // Helper to get or set user_uuid in cookies
+  function getOrSetUserUUID() {
+    const cookieName = 'user_uuid';
+    const match = document.cookie.match(new RegExp('(^| )' + cookieName + '=([^;]+)'));
+    if (match) return match[2];
+    // Generate new UUID
+    const uuid = crypto.randomUUID ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+    document.cookie = `${cookieName}=${uuid}; path=/; SameSite=Lax;`;
+    return uuid;
+  }
+
   const sendMessage = async () => {
     if (!input.trim()) return;
     setMessages(prev => [...prev, { sender: 'user', text: input }]);
     setIsThinking(true);
     setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
+
+    const user_uuid = getOrSetUserUUID();
 
     try {
       const response = await fetch('https://rag-narok-ul49.onrender.com/chat', {
@@ -178,8 +191,8 @@ export default function CHATUI() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: input }),
-        credentials: 'include', // <-- Ensure cookies are sent for session persistence
+        body: JSON.stringify({ query: input, user_uuid }),
+        credentials: 'include',
       });
 
       if (!response.ok) {
