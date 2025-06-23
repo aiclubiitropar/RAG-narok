@@ -56,9 +56,6 @@ INSTRUCTIONS = (
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
 def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=os.getenv("GROQ_API_KEY")):
-    import time
-    current_time = time.strftime('%A, %Y-%m-%d %H:%M:%S')
-    
     def retrieve_rag(query):
         return retrieval_tool(query, longdb, shortdb)
 
