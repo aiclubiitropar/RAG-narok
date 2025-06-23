@@ -25,7 +25,7 @@ from pipeline.RAGnarok import RAGnarok
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "your-default-secret-key")
-CORS(app, origins=[
+CORS(app, supports_credentials=True, origins=[
     "https://rag-narok-ul49.onrender.com",
     "https://rag-narok.vercel.app",
     "https://rag-narok-aiclubiitropars-projects.vercel.app",
@@ -320,4 +320,4 @@ def download_logs():
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, threaded=True)
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=True, threaded=True)
