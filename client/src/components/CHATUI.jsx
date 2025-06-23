@@ -261,7 +261,7 @@ export default function CHATUI() {
   };
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)', paddingTop: 30 }}>
+    <div style={{ position: 'relative', minHeight: '100vh', background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)', paddingTop: 30, overflow: 'hidden' }}>
       <button style={styles.adminFloating} onClick={() => navigate('/admin')}>Admin</button>
       <div style={styles.container}>
         <header style={styles.header}>
@@ -292,7 +292,7 @@ export default function CHATUI() {
             <span style={{ verticalAlign: 'middle', fontWeight: 900, fontSize: 17, color: '#fff', letterSpacing: 1 }}>Iota Cluster</span>
           </div>
         </header>
-        <div style={stylesWithScroll} ref={scrollRef}>
+        <div style={{ ...stylesWithScroll, overflowY: 'auto', maxHeight: isMobile ? '70vh' : '60vh' }} ref={scrollRef}>
           <AnimatePresence initial={false}>
             {messages.map((msg, idx) => {
               if (msg.type === 'reasoning') {

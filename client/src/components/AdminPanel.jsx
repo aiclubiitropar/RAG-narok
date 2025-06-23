@@ -221,7 +221,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Segoe UI, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Segoe UI, sans-serif', paddingTop: isMobile ? 32 : 48, overflow: 'hidden' }}>
       <div style={panelStyle}>
         <div style={{
           display: 'flex',
