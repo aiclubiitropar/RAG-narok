@@ -99,3 +99,74 @@
 .send-button:hover {
   opacity: 0.8;
 }
+
+/* Responsive styles for CHATUI */
+@media (max-width: 900px) {
+  .chatbot-container {
+    min-width: 0;
+    width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .chatbot-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.7rem 0.5rem;
+  }
+  .header-center {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .chat-area {
+    padding: 0.5rem;
+    font-size: 0.98rem;
+  }
+  .message {
+    max-width: 95%;
+    font-size: 0.98rem;
+    padding: 0.6rem;
+  }
+  .input-area {
+    padding: 0.5rem 0.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .chatbot-container {
+    min-width: 0;
+    width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .chatbot-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem 0.2rem;
+  }
+  .header-center {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .chat-area {
+    padding: 0.2rem;
+    font-size: 0.95rem;
+  }
+  .message {
+    max-width: 99%;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+  }
+  .input-area {
+    padding: 0.3rem 0.2rem;
+  }
+  .input-area input {
+    font-size: 0.95rem;
+    padding: 0.4rem 0.7rem;
+  }
+  .send-button {
+    font-size: 1rem;
+    padding: 0.4rem;
+  }
+}

@@ -19,3 +19,16 @@
 .logs p {
   margin-top: 10px;
 }
+
+/* Responsive styles for AdminPanel */
+@media (max-width: 600px) {
+  .admin-panel {
+    padding: 8px;
+  }
+  .worker-status button,
+  .logs button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px 0;
+  }
+}
