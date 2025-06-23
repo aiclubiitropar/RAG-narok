@@ -56,6 +56,8 @@ INSTRUCTIONS = (
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
 def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=os.getenv("GROQ_API_KEY")):
+    import time
+    current_time = time.strftime('%A, %Y-%m-%d %H:%M:%S')
     def retrieve_rag(query):
         return retrieval_tool(query, longdb, shortdb)
 
@@ -81,7 +83,7 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=o
     llm = ChatGroq(
         groq_api_key=api_key,
         model_name=model,
-        temperature=0.6,
+        temperature=0.3,
         max_tokens=4096,
         top_p=0.95,
     )
@@ -102,32 +104,35 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=o
     return llm_agent
 
 
-# Optional CLI Usage with Chat Loop
-if __name__ == "__main__":
-    # Initialize vector DBs for CLI testing
-    longdb = LongTermDatabase(collection_prefix="longterm_db")
-    shortdb = ShortTermDatabase(short_term_prefix="shortterm_db", long_term_prefix="longterm_db")
-    llm_agent = wake_llm(longdb, shortdb, api_key=os.getenv("GROQ_API_KEY"))
-    print("\n💬 RAGnarok is awake. Start chatting (type 'exit' to stop):\n")
+# # Optional CLI Usage with Chat Loop
+# if __name__ == "__main__":
+#     # Initialize vector DBs for CLI testing
+#     longdb = LongTermDatabase(collection_prefix="longterm_db")
+#     shortdb = ShortTermDatabase(short_term_prefix="shortterm_db", long_term_prefix="longterm_db")
+#     llm_agent = wake_llm(longdb, shortdb, api_key=os.getenv("GROQ_API_KEY"))
+#     print("\n💬 RAGnarok is awake. Start chatting (type 'exit' to stop):\n")
 
-    while True:
-        query = input("👤 You: ")
-        if query.strip().lower() in {"exit", "quit"}:
-            print("👋 Goodbye!")
-            break
-        try:
-            response = llm_agent.invoke({"input": query})
-            if isinstance(response, dict) and "output" in response:
-                print(f"🤖 RAGnarok: {response['output']}")
-            else:
-                print(f"🤖 RAGnarok: {response}")
-            # Print chat history for testing
-            print("\n--- Chat History ---")
-            for msg in llm_agent.memory.chat_memory.messages:
-                print(f"{msg.type.capitalize()}: {msg.content}")
-            print("--------------------\n")
-        except OutputParserException as e:
-            print("\n❌ Output Parsing Error:", e)
-            print("Raw LLM output:", getattr(e, "llm_output", "Not available"))
-        except Exception as e:
-            print("\n❌ Unexpected Error:", str(e))
+#     while True:
+#         query = input("\U0001F464 You: ")
+#         if query.strip().lower() in {"exit", "quit"}:
+#             print("\U0001F44B Goodbye!")
+#             break
+#         try:
+#             response = llm_agent.invoke({
+#                 "input": query,
+#                 "current_time": time.strftime('%A, %Y-%m-%d %H:%M:%S')
+#             })
+#             if isinstance(response, dict) and "output" in response:
+#                 print(f"\U0001F916 RAGnarok: {response['output']}")
+#             else:
+#                 print(f"\U0001F916 RAGnarok: {response}")
+#             # Print chat history for testing
+#             print("\n--- Chat History ---")
+#             for msg in llm_agent.memory.chat_memory.messages:
+#                 print(f"{msg.type.capitalize()}: {msg.content}")
+#             print("--------------------\n")
+#         except OutputParserException as e:
+#             print("\n❌ Output Parsing Error:", e)
+#             print("Raw LLM output:", getattr(e, "llm_output", "Not available"))
+#         except Exception as e:
+#             print("\n❌ Unexpected Error:", str(e))
