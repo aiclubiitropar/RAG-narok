@@ -359,7 +359,50 @@ export default function AdminPanel() {
         </div>
 
         {/* Download Logs and Model Selector */}
-        <div style={{ textAlign: 'center', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+        <div style={{ textAlign: 'center', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, width: '100%' }}>
+            <select
+              value={selectedModel}
+              onChange={e => setSelectedModel(e.target.value)}
+              style={{
+                background: '#f5f6fa',
+                color: inputText,
+                border: `2px solid ${inputBorder}`,
+                borderRadius: 10,
+                padding: '8px 12px',
+                fontSize: 15,
+                fontWeight: 500,
+                outline: 'none',
+                minWidth: 220,
+                marginBottom: 8
+              }}
+            >
+              {modelOptions.map(model => (
+                <option key={model} value={model}>{model}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleChangeModel}
+              style={{
+                background: buttonBg,
+                color: buttonText,
+                border: 'none',
+                borderRadius: 12,
+                padding: '10px 22px',
+                fontWeight: 700,
+                fontSize: 16,
+                cursor: 'pointer',
+                boxShadow: accentShadow,
+                marginBottom: 8,
+                transition: 'transform 0.1s, box-shadow 0.2s',
+                outline: 'none',
+              }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+              onBlur={e => e.currentTarget.style.boxShadow = accentShadow}
+              onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 2px #facc1555'}
+            >Change Model</button>
+          </div>
           <button
             onClick={downloadLogs}
             style={{
@@ -373,55 +416,18 @@ export default function AdminPanel() {
               cursor: 'pointer',
               boxShadow: accentShadow,
               marginBottom: 8,
+              marginTop: 8,
               transition: 'transform 0.1s, box-shadow 0.2s',
               outline: 'none',
+              display: 'block',
+              marginLeft: 'auto',
+              marginRight: 'auto',
             }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             onBlur={e => e.currentTarget.style.boxShadow = accentShadow}
             onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 2px #facc1555'}
           >Download Logs</button>
-          <select
-            value={selectedModel}
-            onChange={e => setSelectedModel(e.target.value)}
-            style={{
-              background: '#f5f6fa',
-              color: inputText,
-              border: `2px solid ${inputBorder}`,
-              borderRadius: 10,
-              padding: '8px 12px',
-              fontSize: 15,
-              fontWeight: 500,
-              outline: 'none',
-              minWidth: 220,
-              marginBottom: 8
-            }}
-          >
-            {modelOptions.map(model => (
-              <option key={model} value={model}>{model}</option>
-            ))}
-          </select>
-          <button
-            onClick={handleChangeModel}
-            style={{
-              background: buttonBg,
-              color: buttonText,
-              border: 'none',
-              borderRadius: 12,
-              padding: '10px 22px',
-              fontWeight: 700,
-              fontSize: 16,
-              cursor: 'pointer',
-              boxShadow: accentShadow,
-              marginBottom: 8,
-              transition: 'transform 0.1s, box-shadow 0.2s',
-              outline: 'none',
-            }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-            onBlur={e => e.currentTarget.style.boxShadow = accentShadow}
-            onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 2px #facc1555'}
-          >Change Model</button>
         </div>
         <div style={{ color: '#facc15', fontWeight: 600, fontSize: 15, minHeight: 24, marginTop: 6 }}>{logMessage}</div>
       </div>
