@@ -41,7 +41,7 @@ INSTRUCTIONS = (
     f"  • Primary: Query the IIT Ropar databases first.\n"
     f"  • Fallback: If no relevant results are found, invoke the google_search_tool.\n"
     f"     When using google_search_tool:\n"
-    f"      * Check and compare each source’s publication date against {{current_time}}.\n"
+    f"      * Check and compare each source’s publication date against {current_time}.\n"
     f"      * Include the date in your reasoning to ensure currency of information.\n"
     f"  • If both internal and external searches fail to yield an answer, do not respond with “I don’t know.”\n"
     f"    Instead, suggest alternate resources, ask clarifying questions, or propose next steps.\n\n"
