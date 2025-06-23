@@ -164,15 +164,6 @@ export default function CHATUI() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-    // Initialize RAGnarok instance on backend when page loads
-    fetch('https://rag-narok-ul49.onrender.com/', { method: 'GET' })
-      .then(res => res.json())
-      .then(data => {
-        console.log('RAGnarok initialized:', data);
-      })
-      .catch(err => {
-        console.error('Failed to initialize RAGnarok:', err);
-      });
   }, [messages]);
 
   const sendMessage = async () => {
@@ -188,6 +179,7 @@ export default function CHATUI() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query: input }),
+        credentials: 'include', // <-- Ensure cookies are sent for session persistence
       });
 
       if (!response.ok) {
