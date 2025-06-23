@@ -248,7 +248,7 @@ def chat():
         print(f"RAGnarok response: {response_text}")
 
         resp = make_response(jsonify({'response': response_text}), 200)
-        resp.set_cookie('user_uuid', user_uuid, httponly=True, samesite='Lax')
+        # REMOVE manual set_cookie for user_uuid, let Flask session handle it
         return resp
 
     except Exception as e:
@@ -316,6 +316,10 @@ def download_logs():
     if not os.path.exists(log_path):
         return jsonify({'error': 'Log file not found.'}), 404
     return send_file(log_path, as_attachment=True, download_name='rag.txt')
+
+@app.route('/', methods=['GET'])
+def index():
+    return "RAG-narok backend is running.", 200
 
 if __name__ == '__main__':
     import os
