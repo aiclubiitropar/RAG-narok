@@ -224,33 +224,21 @@ def chat():
     try:
         data = request.get_json()
         query = data.get('query')
-        
+        user_uuid = data.get('user_uuid')
         if not query:
             return jsonify({'error': 'No query provided'}), 400
-
-        # --- Begin ensure_user_rag logic ---
-        global user_rag_dict, model
-        user_uuid = session.get('user_uuid')
-        print(f"Session user_uuid: {user_uuid}")
-        print(f"Current user_rag_dict keys: {list(user_rag_dict.keys())}")
         if not user_uuid:
-            user_uuid = str(uuid.uuid4())
-            session['user_uuid'] = user_uuid
+            return jsonify({'error': 'No user_uuid provided'}), 400
+        global user_rag_dict, model
+        print(f"Received user_uuid: {user_uuid}")
+        print(f"Current user_rag_dict keys: {list(user_rag_dict.keys())}")
         if user_uuid not in user_rag_dict:
             user_rag_dict[user_uuid] = RAGnarok(long_db, short_db, model=model)
-        else:
-            session['user_uuid'] = user_uuid
-        app.logger.info(f"Session user_uuid: {user_uuid}")
-        # --- End ensure_user_rag logic ---
-
         user_rg = user_rag_dict[user_uuid]
         response_text = user_rg.invoke(query)
         print(f"RAGnarok response: {response_text}")
-
         resp = make_response(jsonify({'response': response_text}), 200)
-        # REMOVE manual set_cookie for user_uuid, let Flask session handle it
         return resp
-
     except Exception as e:
         app.logger.error(f"Unexpected error in /chat endpoint: {e}")
         return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
