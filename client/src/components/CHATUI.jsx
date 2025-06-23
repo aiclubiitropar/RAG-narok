@@ -5,85 +5,92 @@ import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import RAGnarokLogo from './RAG_logo.png';
 
 // Inline styles for the chatbot UI
+const isMobile = window.innerWidth <= 600;
+const isTablet = window.innerWidth > 600 && window.innerWidth <= 900;
+
 const styles = {
   container: {
-    width: '90vw', // Slightly smaller than full width
-    maxWidth: 1600, // Cap the width for large screens
-    minWidth: 320,
-    margin: '40px auto', // Center horizontally
-    borderRadius: 24, // Rounded corners
-    boxShadow: '0 8px 32px rgba(0,0,0,0.18)', // Soft shadow
+    width: isMobile ? '100vw' : isTablet ? '98vw' : '90vw',
+    maxWidth: isMobile ? '100vw' : isTablet ? 900 : 1600,
+    minWidth: isMobile ? 0 : 320,
+    margin: isMobile ? '0' : isTablet ? '20px auto' : '40px auto',
+    borderRadius: isMobile ? 0 : 24,
+    boxShadow: isMobile ? 'none' : '0 8px 32px rgba(0,0,0,0.18)',
     background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%)',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 600,
-    border: '1.5px solid #e5e7eb', // Slightly thicker border
+    minHeight: isMobile ? '100vh' : 600,
+    border: isMobile ? 'none' : '1.5px solid #e5e7eb',
   },
   header: {
-    display: 'flex',
+    display: isMobile ? 'block' : 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)',
     color: '#fff',
-    padding: '0.7rem 1.5rem',
+    padding: isMobile ? '0.5rem 0.5rem' : isTablet ? '0.7rem 1rem' : '0.7rem 1.5rem',
     fontWeight: 600,
-    fontSize: 18,
+    fontSize: isMobile ? 15 : 18,
     borderBottom: '1px solid #334155',
   },
-  headerLeft: { fontWeight: 700, letterSpacing: 1 },
+  headerLeft: { fontWeight: 700, letterSpacing: 1, marginBottom: isMobile ? 6 : 0 },
   headerCenter: {
-    display: 'flex', alignItems: 'center', gap: 10
+    display: 'flex',
+    alignItems: 'center',
+    gap: isMobile ? 4 : 10,
+    flexDirection: isMobile ? 'column' : 'row',
   },
   logo: {
     width: 38, height: 38, borderRadius: '50%', background: '#fff', objectFit: 'cover', boxShadow: '0 2px 8px #0001',
   },
   title: {
-    fontWeight: 800, fontSize: 22, letterSpacing: 1, color: '#facc15', marginLeft: 6
+    fontWeight: 800, fontSize: isMobile ? 18 : 22, letterSpacing: 1, color: '#facc15', marginLeft: 6
   },
   headerRight: {
-    display: 'flex', alignItems: 'center', gap: 12
+    display: 'flex', alignItems: 'center', gap: 12, marginTop: isMobile ? 8 : 0
   },
   adminButton: {
     background: 'linear-gradient(90deg, #facc15 60%, #fbbf24 100%)',
     color: '#1e293b',
     border: 'none',
     borderRadius: 8,
-    padding: '6px 16px',
+    padding: isMobile ? '8px 12px' : '6px 16px',
     fontWeight: 700,
     cursor: 'pointer',
-    fontSize: 15,
+    fontSize: isMobile ? 14 : 15,
     boxShadow: '0 2px 8px #facc1533',
     transition: 'background 0.2s',
   },
   adminFloating: {
     position: 'absolute',
-    top: 18,
-    right: 32,
+    top: isMobile ? 8 : 18,
+    right: isMobile ? 8 : 32,
     zIndex: 10,
     background: 'linear-gradient(90deg, #facc15 60%, #fbbf24 100%)',
     color: '#1e293b',
     border: 'none',
     borderRadius: 8,
-    padding: '8px 20px',
+    padding: isMobile ? '8px 12px' : '8px 20px',
     fontWeight: 700,
-    fontSize: 16,
+    fontSize: isMobile ? 14 : 16,
     boxShadow: '0 2px 8px #facc1533',
     transition: 'background 0.2s',
     cursor: 'pointer',
   },
   chatArea: {
     flex: 1,
-    padding: '1.2rem',
+    padding: isMobile ? '0.2rem' : isTablet ? '0.5rem' : '1.2rem',
     overflowY: 'auto',
     background: 'linear-gradient(135deg,rgb(237, 237, 237) 80%,rgba(203, 208, 213, 0.92) 100%)',
     display: 'flex', flexDirection: 'column', gap: 12,
+    fontSize: isMobile ? 15 : 16,
   },
   message: {
-    maxWidth: '80%',
-    padding: '0.7rem 1.1rem',
+    maxWidth: isMobile ? '99%' : isTablet ? '95%' : '80%',
+    padding: isMobile ? '0.5rem' : isTablet ? '0.6rem' : '0.7rem 1.1rem',
     borderRadius: 16,
-    fontSize: 16,
+    fontSize: isMobile ? 15 : 16,
     marginBottom: 2,
     boxShadow: '0 2px 8px #0001',
     wordBreak: 'break-word',

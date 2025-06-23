@@ -159,6 +159,10 @@ export default function AdminPanel() {
     }
   };
 
+  // Responsive helpers
+  const isMobile = window.innerWidth <= 600;
+  const isTablet = window.innerWidth > 600 && window.innerWidth <= 900;
+
   // Theme colors inspired by the chatbot: dark background, off-white text, yellow accent
   const pageBg = '#e0e7ef'; // Light blue-gray background for the whole page
   const panelBg = 'linear-gradient(135deg, #e0e7ef 60%,rgb(224, 224, 224) 100%)';
@@ -171,10 +175,24 @@ export default function AdminPanel() {
   const inputBorder = '#facc15';
   const inputText = '#23232b';
 
+  // Responsive panel/container styles
+  const panelStyle = {
+    width: isMobile ? '100vw' : isTablet ? 340 : 480,
+    background: panelBg,
+    borderRadius: isMobile ? 0 : 24,
+    boxShadow: isMobile ? 'none' : '0 8px 40px #000a',
+    padding: isMobile ? '1.2em 0.5em 1em 0.5em' : '2.5em 2.5em 2em 2.5em',
+    color: logoColor,
+    border: 'none',
+    backdropFilter: 'blur(12px)',
+    borderTop: `4px solid ${borderColor}`,
+    minHeight: isMobile ? '100vh' : undefined,
+  };
+
   if (showLogin) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Segoe UI, sans-serif' }}>
-        <div style={{ width: 400, padding: '2em', borderRadius: 12, boxShadow: '0 8px 40px #000a', background: '#fff', textAlign: 'center' }}>
+        <div style={{ width: isMobile ? '100vw' : 400, padding: isMobile ? '1.2em 0.5em' : '2em', borderRadius: isMobile ? 0 : 12, boxShadow: isMobile ? 'none' : '0 8px 40px #000a', background: '#fff', textAlign: 'center' }}>
           <img src={RAGnarokLogo} alt="RAGnarok Logo" style={{ width: 50, marginBottom: 20 }} />
           <h2 style={{ marginBottom: 20 }}>Admin Login</h2>
           <input
@@ -182,18 +200,18 @@ export default function AdminPanel() {
             placeholder="Enter email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+            style={{ width: '100%', padding: isMobile ? '8px' : '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc', fontSize: isMobile ? 15 : 16 }}
           />
           <input
             type="password"
             placeholder="Enter password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '10px', marginBottom: '20px', borderRadius: '5px', border: '1px solid #ccc' }}
+            style={{ width: '100%', padding: isMobile ? '8px' : '10px', marginBottom: '20px', borderRadius: '5px', border: '1px solid #ccc', fontSize: isMobile ? 15 : 16 }}
           />
           <button
             onClick={handleLogin}
-            style={{ padding: '10px 20px', borderRadius: '5px', background: '#facc15', color: '#1e293b', fontWeight: 'bold', cursor: 'pointer' }}
+            style={{ padding: isMobile ? '8px 16px' : '10px 20px', borderRadius: '5px', background: '#facc15', color: '#1e293b', fontWeight: 'bold', cursor: 'pointer', fontSize: isMobile ? 15 : 16 }}
           >
             Login
           </button>
@@ -204,7 +222,7 @@ export default function AdminPanel() {
 
   return (
     <div style={{ minHeight: '100vh', background: pageBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Segoe UI, sans-serif' }}>
-      <div style={{ width: 480, background: panelBg, borderRadius: 24, boxShadow: '0 8px 40px #000a', padding: '2.5em 2.5em 2em 2.5em', color: logoColor, border: 'none', backdropFilter: 'blur(12px)', borderTop: `4px solid ${borderColor}` }}>
+      <div style={panelStyle}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
