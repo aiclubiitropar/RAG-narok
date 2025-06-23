@@ -38,6 +38,8 @@ INSTRUCTIONS = (
     "Action Input: <input to the tool OR response if using Final Answer>\n"
     "Never use HTML, XML, or other tags. Never invent new formats.\n"
     "If asked about yourself or greeted, respond directly with Final Answer.\n"
+    "Most questions will be related to IIT Ropar. Always check if the information is the most recent by comparing it with the current time.\n"
+    "When using Google Search, also try to confirm and mention the time or date of the source to ensure the answer is up to date."
 )
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
