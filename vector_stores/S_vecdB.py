@@ -88,6 +88,9 @@ class ShortTermDatabase:
             self.flush_to_long_term()
 
     def flush_to_long_term(self):
+        # Print the size of the short-term database before flushing
+        count = self.client.count(collection_name=self.short_data_collection).count
+        print(f"[FLUSH] Short-term DB size before flush: {count} emails")
         long_db = LongTermDatabase(collection_prefix=self.long_term_prefix)
 
         def retrieve_all(collection_name):
@@ -98,18 +101,22 @@ class ShortTermDatabase:
                 vectors.append(point.vector)
                 documents.append(point.payload.get("document", ""))
                 metadatas.append(point.payload.get("metadata", {}))
+            print(f"[FLUSH] Fetched {len(ids)} items from '{collection_name}' for flushing.")
             return ids, vectors, documents, metadatas
 
         ids_d, vecs_d, docs_d, metas_d = retrieve_all(self.short_data_collection)
         ids_m, vecs_m, docs_m, metas_m = retrieve_all(self.short_meta_collection)
 
-        long_db.main_data.add(ids=ids_d, embeddings=vecs_d, documents=docs_d, metadatas=metas_d)
-        long_db.meta_data.add(ids=ids_m, embeddings=vecs_m, documents=docs_m, metadatas=metas_m)
+        long_db._upsert_collection(long_db.main_data_collection, ids_d, vecs_d, docs_d, metas_d)
+        long_db._upsert_collection(long_db.meta_data_collection, ids_m, vecs_m, docs_m, metas_m)
         long_db.save()
 
         self.client.delete(collection_name=self.short_data_collection, points=ids_d)
         self.client.delete(collection_name=self.short_meta_collection, points=ids_m)
         self._last_flush_time = datetime.utcnow()
+        # Print the size of the short-term database after flushing
+        count_after = self.client.count(collection_name=self.short_data_collection).count
+        print(f"[FLUSH] Short-term DB size after flush: {count_after} emails")
 
     def _worker_loop(self):
         blocklist = [
