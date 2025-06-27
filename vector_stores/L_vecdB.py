@@ -46,7 +46,7 @@ class LongTermDatabase:
         for text in texts:
             result = get_embedding(text)
             results.append(result)
-            time.sleep(5)  # Wait 5 seconds between API calls
+            time.sleep(2)  # Wait 2 seconds between API calls
         return np.array(results)
 
     def add_data(self, json_file: str):
@@ -97,40 +97,25 @@ class LongTermDatabase:
         self._upsert_collection(self.main_data_collection, ids, data_embeddings, empty_docs, empty_meta)
         self._upsert_collection(self.meta_data_collection, ids, meta_embeddings, empty_docs, empty_meta)
 
-    def smart_query(self, query_text: str, topk_meta: int = 10, topk_data: int = 5):
+    def smart_query(self, query_text: str, topk_data: int = 5):
         q_emb = self._batch_get_embeddings([query_text])[0]
-        meta_search = self.client.search(
-            collection_name=self.meta_data_collection,
-            query_vector=q_emb.tolist(),
-            limit=topk_meta
-        )
-
-        candidate_ids = [hit.id for hit in meta_search]
-
-        if not candidate_ids:
-            return []
-
-        main_data = self.client.retrieve(
+        main_search = self.client.search(
             collection_name=self.main_data_collection,
-            ids=candidate_ids,
+            query_vector=q_emb.tolist(),
+            limit=topk_data,
             with_payload=True,
             with_vectors=True
         )
 
-        embs = np.array([item.vector for item in main_data])
-        docs = [item.payload.get("document", "") for item in main_data]
-        metas = [item.payload.get("metadata", {}) for item in main_data]
-
-        q_norm = np.linalg.norm(q_emb)
-        d_norms = np.linalg.norm(embs, axis=1)
-        sims = np.dot(embs, q_emb) / (d_norms * q_norm + 1e-8)
-        idx_sorted = np.argsort(-sims)[:topk_data]
+        if not main_search:
+            return []
 
         results = []
-        for idx in idx_sorted:
-            full_item = docs[idx]
-            meta_text = json.dumps(metas[idx], ensure_ascii=False)
-            results.append(f"{candidate_ids[idx]} | {full_item} | {meta_text}")
+        for hit in main_search:
+            doc = hit.payload.get("document", "")
+            meta = hit.payload.get("metadata", {})
+            meta_text = json.dumps(meta, ensure_ascii=False)
+            results.append(f"{hit.id} | {doc} | {meta_text}")
         return results
 
     def save(self):
