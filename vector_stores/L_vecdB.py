@@ -97,7 +97,7 @@ class LongTermDatabase:
         self._upsert_collection(self.main_data_collection, ids, data_embeddings, empty_docs, empty_meta)
         self._upsert_collection(self.meta_data_collection, ids, meta_embeddings, empty_docs, empty_meta)
 
-    def smart_query(self, query_text: str, topk_data: int = 5):
+    def smart_query(self, query_text: str, topk_data: int = 20):
         q_emb = self._batch_get_embeddings([query_text])[0]
         main_search = self.client.search(
             collection_name=self.main_data_collection,
