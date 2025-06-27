@@ -49,7 +49,12 @@ class ShortTermDatabase:
                 )
 
         def embedding_batch(texts):
-            return [get_embedding(text) for text in texts]
+            results = []
+            for text in texts:
+                result = get_embedding(text)
+                results.append(result)
+                time.sleep(5)  # Wait 5 seconds between API calls
+            return results
 
         self.model = model or embedding_batch
         self.time_threshold = timedelta(days=time_threshold)
