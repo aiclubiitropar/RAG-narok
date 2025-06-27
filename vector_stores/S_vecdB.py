@@ -53,7 +53,7 @@ class ShortTermDatabase:
             for text in texts:
                 result = get_embedding(text)
                 results.append(result)
-                time.sleep(5)  # Wait 5 seconds between API calls
+                time.sleep(2)  # Wait 2 seconds between API calls
             return results
 
         self.model = model or embedding_batch
@@ -164,38 +164,24 @@ class ShortTermDatabase:
         if self._thread:
             self._thread.join()
 
-    def smart_query(self, query_text: str, topk_meta: int = 10, topk_data: int = 5) -> List[str]:
+    def smart_query(self, query_text: str, topk_data: int = 5) -> List[str]:
         q_emb = self.model([query_text])[0]
-        meta_search = self.client.search(
-            collection_name=self.short_meta_collection,
-            query_vector=q_emb,
-            limit=topk_meta
-        )
-        candidate_ids = [hit.id for hit in meta_search]
-
-        if not candidate_ids:
-            return []
-
-        main_data = self.client.retrieve(
+        main_search = self.client.search(
             collection_name=self.short_data_collection,
-            ids=candidate_ids,
-            with_vectors=True,
-            with_payload=True
+            query_vector=q_emb,
+            limit=topk_data,
+            with_payload=True,
+            with_vectors=True
         )
-
-        docs = [item.payload.get("document", "") for item in main_data]
-        metas = [item.payload.get("metadata", {}) for item in main_data]
-        embs = np.array([item.vector for item in main_data])
-
-        q_norm = np.linalg.norm(q_emb)
-        d_norms = np.linalg.norm(embs, axis=1)
-        sims = embs.dot(q_emb) / (d_norms * q_norm + 1e-8)
-        idx_sorted = np.argsort(-sims)[:topk_data]
-
-        return [
-            f"{candidate_ids[i]} | {docs[i]} | {json.dumps(metas[i], ensure_ascii=False)}"
-            for i in idx_sorted
-        ]
+        if not main_search:
+            return []
+        results = []
+        for hit in main_search:
+            doc = hit.payload.get("document", "")
+            meta = hit.payload.get("metadata", {})
+            meta_text = json.dumps(meta, ensure_ascii=False)
+            results.append(f"{hit.id} | {doc} | {meta_text}")
+        return results
 
     def close(self):
         self.stop_worker()
