@@ -7,8 +7,7 @@ def get_embedding(text):
     try:
         result = client.predict(
             text=text,
-            api_name="/predict",
-            timeout=60  
+            api_name="/predict"  
         )
         # Expecting result to be a dict with 'embedding' key or a list
         if isinstance(result, dict) and 'embedding' in result:
