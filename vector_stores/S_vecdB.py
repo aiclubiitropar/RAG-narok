@@ -164,7 +164,7 @@ class ShortTermDatabase:
         if self._thread:
             self._thread.join()
 
-    def smart_query(self, query_text: str, topk_data: int = 5) -> List[str]:
+    def smart_query(self, query_text: str, topk_data: int = 20) -> List[str]:
         q_emb = self.model([query_text])[0]
         main_search = self.client.search(
             collection_name=self.short_data_collection,
