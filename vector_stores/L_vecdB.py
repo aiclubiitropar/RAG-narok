@@ -1,6 +1,7 @@
 import os
 import json
 import numpy as np
+import time
 from typing import List
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
@@ -41,7 +42,12 @@ class LongTermDatabase:
                 )
 
     def _batch_get_embeddings(self, texts: List[str]):
-        return np.array([get_embedding(text) for text in texts])
+        results = []
+        for text in texts:
+            result = get_embedding(text)
+            results.append(result)
+            time.sleep(5)  # Wait 5 seconds between API calls
+        return np.array(results)
 
     def add_data(self, json_file: str):
         with open(json_file, 'r', encoding='utf-8') as f:
