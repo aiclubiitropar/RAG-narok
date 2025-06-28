@@ -82,7 +82,7 @@ class LongTermDatabase:
         points = [
             PointStruct(
                 id=to_valid_qdrant_id(ids[i]),
-                vector=embeddings[i].tolist(),
+                vector=embeddings[i],
                 payload={
                     "document": documents[i],
                     "metadata": metadatas[i]
