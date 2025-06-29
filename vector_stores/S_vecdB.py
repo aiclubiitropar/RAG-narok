@@ -166,13 +166,13 @@ class ShortTermDatabase:
 
     def smart_query(self, query_text: str, topk_data: int = 20) -> List[str]:
         q_emb = self.model([query_text])[0]
-        # Hybrid search: vector + BM25 keyword search
+        # Hybrid search: vector + BM25 keyword search (correct Qdrant filter structure)
         search_filter = {
             "should": [
                 {
-                    "key": "document",
+                    "field": "document",
                     "match": {
-                        "text": query_text,
+                        "value": query_text,
                         "algorithm": "bm25"
                     }
                 }
