@@ -99,12 +99,25 @@ class LongTermDatabase:
 
     def smart_query(self, query_text: str, topk_data: int = 20):
         q_emb = self._batch_get_embeddings([query_text])[0]
+        # Hybrid search: vector + BM25 keyword search
+        search_filter = {
+            "should": [
+                {
+                    "key": "document",
+                    "match": {
+                        "text": query_text,
+                        "algorithm": "bm25"
+                    }
+                }
+            ]
+        }
         main_search = self.client.search(
             collection_name=self.main_data_collection,
             query_vector=q_emb.tolist(),
             limit=topk_data,
             with_payload=True,
-            with_vectors=True
+            with_vectors=True,
+            query_filter=search_filter
         )
 
         if not main_search:
@@ -113,9 +126,7 @@ class LongTermDatabase:
         results = []
         for hit in main_search:
             doc = hit.payload.get("document", "")
-            meta = hit.payload.get("metadata", {})
-            meta_text = json.dumps(meta, ensure_ascii=False)
-            results.append(f"{hit.id} | {doc} | {meta_text}")
+            results.append(f"{hit.id} | {doc}")
         return results
 
     def save(self):
