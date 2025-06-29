@@ -45,7 +45,10 @@ class ShortTermDatabase:
             if not self.client.collection_exists(collection_name):
                 self.client.recreate_collection(
                     collection_name=collection_name,
-                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
+                    payload_schema={
+                        "document": {"type": "text"}
+                    }
                 )
 
         def embedding_batch(texts):
