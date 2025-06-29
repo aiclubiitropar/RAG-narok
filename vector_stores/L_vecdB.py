@@ -38,7 +38,11 @@ class LongTermDatabase:
                     vectors_config=VectorParams(
                         size=self.vector_size,
                         distance=Distance.COSINE
-                    )
+                    ),
+                    # Add a text index for the 'document' field for BM25/text search
+                    payload_schema={
+                        "document": {"type": "text"}
+                    }
                 )
 
     def _batch_get_embeddings(self, texts: List[str]):
