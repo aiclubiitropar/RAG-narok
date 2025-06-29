@@ -170,8 +170,8 @@ class ShortTermDatabase:
         search_filter = {
             "should": [
                 {
-                    "field": "document",
                     "match": {
+                        "field": "document",
                         "value": query_text,
                         "algorithm": "bm25"
                     }
