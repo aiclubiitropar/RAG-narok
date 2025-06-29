@@ -164,35 +164,41 @@ class ShortTermDatabase:
         if self._thread:
             self._thread.join()
 
-    def smart_query(self, query_text: str, topk_data: int = 20) -> List[str]:
-        q_emb = self.model([query_text])[0]
-        # Hybrid search: vector + BM25 keyword search (correct Qdrant filter structure)
+    def smart_query(self, query_text: str, topk_data: int = 20):
+        # 1) Embed the query
+        q_emb = self._batch_get_embeddings([query_text])[0]
+
+        # 2) Build a BM25 + vector “should” filter in the exact shape Qdrant expects:
         search_filter = {
             "should": [
                 {
+                    "key": "document",          # the payload field you indexed
                     "match": {
-                        "field": "document",
-                        "value": query_text,
-                        "algorithm": "bm25"
+                        "text": query_text     # full-text match uses “text”, not “value” or “algorithm”
                     }
                 }
             ]
         }
+
+        # 3) Run the hybrid search
         main_search = self.client.search(
             collection_name=self.short_data_collection,
-            query_vector=q_emb,
+            query_vector=q_emb.tolist(),
             limit=topk_data,
             with_payload=True,
             with_vectors=True,
             query_filter=search_filter
         )
+
         if not main_search:
             return []
-        results = []
-        for hit in main_search:
-            doc = hit.payload.get("document", "")
-            results.append(f"{hit.id} | {doc}")
-        return results
+
+        # 4) Format results
+        return [
+            f"{hit.id} | {hit.payload.get('document','')}"
+            for hit in main_search
+        ]
+
 
     def close(self):
         self.stop_worker()
