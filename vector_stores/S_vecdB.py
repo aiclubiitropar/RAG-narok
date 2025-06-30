@@ -20,13 +20,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 class ShortTermDatabase:
-    def _batch_get_embeddings(self, texts: List[str]):
-        results = []
-        for text in texts:
-            result = get_embedding(text)
-            results.append(result)
-            time.sleep(2)  # Wait 2 seconds between API calls
-        return np.array(results)
     def __init__(
         self,
         short_term_prefix: str = "shortterm_db",
@@ -52,22 +45,18 @@ class ShortTermDatabase:
             if not self.client.collection_exists(collection_name):
                 self.client.recreate_collection(
                     collection_name=collection_name,
-                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
-                    payload_schema={
-                        "document": {"type": "text"}
-                    }
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
                 )
 
-        self.model = model or self._embedding_batch
+        def embedding_batch(texts):
+            results = []
+            for text in texts:
+                result = get_embedding(text)
+                results.append(result)
+                time.sleep(2)  # Wait 2 seconds between API calls
+            return results
 
-    @staticmethod
-    def _embedding_batch(texts):
-        results = []
-        for text in texts:
-            result = get_embedding(text)
-            results.append(result)
-            time.sleep(2)  # Wait 2 seconds between API calls
-        return results
+        self.model = model or embedding_batch
         self.time_threshold = timedelta(days=time_threshold)
         self.count_threshold = count_threshold
         self.fetch_latest_email = fetch_latest_email
@@ -83,9 +72,8 @@ class ShortTermDatabase:
         raw = email['body']
         metadata = email.get('metadata', {})
 
-        # Use _batch_get_embeddings for consistency with LongTermDatabase
-        data_vec = self._batch_get_embeddings([raw])[0]
-        meta_vec = self._batch_get_embeddings([json.dumps(metadata)])[0]
+        data_vec = self.model([raw])[0]
+        meta_vec = self.model([json.dumps(metadata)])[0]
 
         self.client.upsert(
             collection_name=self.short_data_collection,
@@ -176,41 +164,24 @@ class ShortTermDatabase:
         if self._thread:
             self._thread.join()
 
-    def smart_query(self, query_text: str, topk_data: int = 20):
-        # 1) Embed the query
-        q_emb = self._batch_get_embeddings([query_text])[0]
-
-        # 2) Build a BM25 + vector “should” filter in the exact shape Qdrant expects:
-        search_filter = {
-            "should": [
-                {
-                    "key": "document",          # the payload field you indexed
-                    "match": {
-                        "text": query_text     # full-text match uses “text”, not “value” or “algorithm”
-                    }
-                }
-            ]
-        }
-
-        # 3) Run the hybrid search
+    def smart_query(self, query_text: str, topk_data: int = 20) -> List[str]:
+        q_emb = self.model([query_text])[0]
         main_search = self.client.search(
             collection_name=self.short_data_collection,
-            query_vector=q_emb.tolist(),
+            query_vector=q_emb,
             limit=topk_data,
             with_payload=True,
-            with_vectors=True,
-            query_filter=search_filter
+            with_vectors=True
         )
-
         if not main_search:
             return []
-
-        # 4) Format results
-        return [
-            f"{hit.id} | {hit.payload.get('document','')}"
-            for hit in main_search
-        ]
-
+        results = []
+        for hit in main_search:
+            doc = hit.payload.get("document", "")
+            meta = hit.payload.get("metadata", {})
+            meta_text = json.dumps(meta, ensure_ascii=False)
+            results.append(f"{hit.id} | {doc} | {meta_text}")
+        return results
 
     def close(self):
         self.stop_worker()
