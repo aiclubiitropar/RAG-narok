@@ -45,10 +45,13 @@ class ShortTermDatabase:
             if not self.client.collection_exists(collection_name):
                 self.client.recreate_collection(
                     collection_name=collection_name,
-                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
-                    payload_schema={
-                        "document": {"type": "text"}
-                    }
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
+                )
+                # Create a text index for the 'document' field for BM25/text search
+                self.client.create_payload_index(
+                    collection_name=collection_name,
+                    field_name="document",
+                    field_schema="text"
                 )
 
         def embedding_batch(texts):
