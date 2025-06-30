@@ -40,12 +40,6 @@ class LongTermDatabase:
                         distance=Distance.COSINE
                     )
                 )
-                # Create a text index for the 'document' field for BM25/text search
-                self.client.create_payload_index(
-                    collection_name=collection_name,
-                    field_name="document",
-                    field_schema="text"
-                )
 
     def _batch_get_embeddings(self, texts: List[str]):
         results = []
@@ -104,40 +98,25 @@ class LongTermDatabase:
         self._upsert_collection(self.meta_data_collection, ids, meta_embeddings, empty_docs, empty_meta)
 
     def smart_query(self, query_text: str, topk_data: int = 20):
-        # 1) Embed the query
         q_emb = self._batch_get_embeddings([query_text])[0]
-
-        # 2) Build a BM25 + vector “should” filter in the exact shape Qdrant expects:
-        search_filter = {
-            "should": [
-                {
-                    "key": "document",          # the payload field you indexed
-                    "match": {
-                        "text": query_text     # full-text match uses “text”, not “value” or “algorithm”
-                    }
-                }
-            ]
-        }
-
-        # 3) Run the hybrid search
         main_search = self.client.search(
             collection_name=self.main_data_collection,
             query_vector=q_emb.tolist(),
             limit=topk_data,
             with_payload=True,
-            with_vectors=True,
-            query_filter=search_filter
+            with_vectors=True
         )
 
         if not main_search:
             return []
 
-        # 4) Format results
-        return [
-            f"{hit.id} | {hit.payload.get('document','')}"
-            for hit in main_search
-        ]
-
+        results = []
+        for hit in main_search:
+            doc = hit.payload.get("document", "")
+            meta = hit.payload.get("metadata", {})
+            meta_text = json.dumps(meta, ensure_ascii=False)
+            results.append(f"{hit.id} | {doc} | {meta_text}")
+        return results
 
     def save(self):
         # Qdrant handles persistence automatically
