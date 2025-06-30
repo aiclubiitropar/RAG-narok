@@ -20,6 +20,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 class ShortTermDatabase:
+    def _batch_get_embeddings(self, texts: List[str]):
+        results = []
+        for text in texts:
+            result = get_embedding(text)
+            results.append(result)
+            time.sleep(2)  # Wait 2 seconds between API calls
+        return np.array(results)
     def __init__(
         self,
         short_term_prefix: str = "shortterm_db",
@@ -45,24 +52,22 @@ class ShortTermDatabase:
             if not self.client.collection_exists(collection_name):
                 self.client.recreate_collection(
                     collection_name=collection_name,
-                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
-                )
-                # Create a text index for the 'document' field for BM25/text search
-                self.client.create_payload_index(
-                    collection_name=collection_name,
-                    field_name="document",
-                    field_schema="text"
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
+                    payload_schema={
+                        "document": {"type": "text"}
+                    }
                 )
 
-        def embedding_batch(texts):
-            results = []
-            for text in texts:
-                result = get_embedding(text)
-                results.append(result)
-                time.sleep(2)  # Wait 2 seconds between API calls
-            return results
+        self.model = model or self._embedding_batch
 
-        self.model = model or embedding_batch
+    @staticmethod
+    def _embedding_batch(texts):
+        results = []
+        for text in texts:
+            result = get_embedding(text)
+            results.append(result)
+            time.sleep(2)  # Wait 2 seconds between API calls
+        return results
         self.time_threshold = timedelta(days=time_threshold)
         self.count_threshold = count_threshold
         self.fetch_latest_email = fetch_latest_email
@@ -78,8 +83,9 @@ class ShortTermDatabase:
         raw = email['body']
         metadata = email.get('metadata', {})
 
-        data_vec = self.model([raw])[0]
-        meta_vec = self.model([json.dumps(metadata)])[0]
+        # Use _batch_get_embeddings for consistency with LongTermDatabase
+        data_vec = self._batch_get_embeddings([raw])[0]
+        meta_vec = self._batch_get_embeddings([json.dumps(metadata)])[0]
 
         self.client.upsert(
             collection_name=self.short_data_collection,
