@@ -108,6 +108,7 @@ class ShortTermDatabase:
 
     def _maybe_flush(self):
         now = datetime.utcnow()
+        print(f"[MAYBE FLUSH] Checking if flush is needed at {now}...")
         count = self.client.count(collection_name=self.collection_name).count
         if (now - self._last_flush_time) > self.time_threshold or count >= self.count_threshold:
             self.flush_to_long_term()
@@ -257,14 +258,6 @@ class ShortTermDatabase:
 
     def close(self):
         self.stop_worker()
-
-    # Remove vectorize_and_add and add_email alias (already handled by add_email)
-
-    # Remove duplicate _maybe_flush (already defined above)
-
-    # Remove duplicate flush_to_long_term (already defined above)
-
-    # Remove duplicate _worker_loop (already defined above)
 
     def run_worker(self):
         if not self.fetch_latest_email:
