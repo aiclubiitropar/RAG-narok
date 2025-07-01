@@ -63,8 +63,7 @@ def fetch_latest_email():
 
 # Pass the callback to ShortTermDatabase
 short_db = ShortTermDatabase(
-    short_term_prefix=SHORT_TERM_PREFIX,
-    long_term_prefix=LONG_TERM_PREFIX,
+    collection_prefix=SHORT_TERM_PREFIX,
     fetch_latest_email=fetch_latest_email
 )
 
