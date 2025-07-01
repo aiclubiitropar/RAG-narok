@@ -1,39 +1,60 @@
 from gradio_client import Client
 import uuid
 
+# Point to your deployed Gradio app
 client = Client("IotaCluster/embedding-model")
 
-def get_embedding(text):
+
+def get_dense_embedding(text: str):
+    """Calls the /embed_dense endpoint (MiniLM)."""
+    return _call_api(text, api_name="/embed_dense")
+
+
+def get_sparse_embedding(text: str):
+    """Calls the /embed_sparse endpoint (BM25)."""
+    return _call_api(text, api_name="/embed_sparse")
+
+
+def get_late_embedding(text: str):
+    """Calls the /embed_colbert endpoint (ColBERT late-interaction)."""
+    return _call_api(text, api_name="/embed_colbert")
+
+
+def _call_api(text: str, api_name: str):
     try:
         result = client.predict(
             text=text,
-            api_name="/predict"  
+            api_name=api_name
         )
-        # Expecting result to be a dict with 'embedding' key or a list
-        if isinstance(result, dict) and 'embedding' in result:
-            return result['embedding']
+        # Normalize response: return the first value in the dict or the list itself
+        if isinstance(result, dict):
+            return next(iter(result.values()))
         elif isinstance(result, list):
-            return result[0] if result and isinstance(result[0], list) else result
+            return result
         else:
-            print("Embedding API error or unexpected response:", result)
-            return [0.0] * 384
+            print(f"Unexpected response from {api_name!r}:", result)
+            return None
     except Exception as e:
-        print("Embedding API request failed:", e)
-        return [0.0] * 384
+        print(f"API request to {api_name!r} failed:", e)
+        return None
 
 def to_valid_qdrant_id(id_val):
+    """Ensures the ID is a valid UUID (for Qdrant)."""
     try:
-        # If already a valid UUID string, return as is
         return str(uuid.UUID(str(id_val)))
     except Exception:
-        # Otherwise, generate a UUID based on the string
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, str(id_val)))
 
 if __name__ == "__main__":
-    text = "ZenoVerse by Iota Cluster"
-    embedding = get_embedding(text)
-    print("Embedding:", embedding)
-    if embedding:
-        print("Embedding Length:", len(embedding))
-    else:
-        print("Failed to fetch embedding.")
+    text = "Hello!!"
+
+    # dense = get_dense_embedding(text)
+    # print("Dense embedding:", dense)
+    # print("Length:", len(dense) if dense else None)
+
+    # sparse = get_sparse_embedding(text)
+    # print("\nSparse term-weights:", sparse)
+
+    late = get_late_embedding(text)
+    print("\nLate-interaction (ColBERT) embeddings:", late)
+    print("Tokens count:", len(late) if isinstance(late, list) else None)
