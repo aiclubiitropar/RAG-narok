@@ -50,19 +50,16 @@ def fetch_latest_email():
     Fetch the latest email using the EmailScraper class.
     """
     scraper = EmailScraper()
-    emails = scraper.scrape_latest_emails(count=1)  # Fetch the latest email
-
+    emails = scraper.scrape_latest_emails(count=1)
     if not emails:
         app.logger.warning("No emails found when fetching latest email.")
-        return None  # Do not raise, just return None
-
-    # Extract the first email from the result
+        return None
     latest_email_id, latest_email = next(iter(emails.items()))
-    return {
+    # Return as a list of dicts for objectwise ingestion
+    return [{
         'id': latest_email_id,
-        'body': latest_email['body'],
-        'metadata': latest_email['metadata']
-    }
+        'body': latest_email.get('body', '')
+    }]
 
 # Pass the callback to ShortTermDatabase
 short_db = ShortTermDatabase(
