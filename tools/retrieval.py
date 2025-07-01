@@ -17,16 +17,32 @@ def retrieval_tool(query, long_db, short_db):
         list: Reranked results from both databases.
     """
     # Query the long database using its smart_query method
-    long_results = long_db.smart_query(query)
 
-    # Query the short database using its smart_query method
-    short_results = short_db.smart_query(query)
+    # Use correct argument name for both DBs
+    long_results = long_db.smart_query(query, topk=10)
+    short_results = short_db.smart_query(query, topk=10)
 
-    # Concatenate results
-    combined_results = long_results + short_results
+    # Combine and deduplicate results from both DBs
+    combined = []
+    seen = set()
+    for res in long_results + short_results:
+        if res not in seen:
+            combined.append(res)
+            seen.add(res)
+    output_lines = [f"This is the query by the user: '{query}'"]
+    if combined:
+        output_lines.extend([f"{i+1}. {res}" for i, res in enumerate(combined)])
+    else:
+        output_lines.append("No results found.")
+    return "\n".join(output_lines)
 
-    # Return the combined results directly without reranking
-    if not combined_results:
-        return f"This is the query by the user '{query}'\nNo results were retrieved."
 
-    return f"This is the query by the user '{query}'\nThese are the retrieved results from RAG: '{combined_results[0]}'"
+if __name__ == "__main__":
+    # Import from vector_stores submodule for direct script execution
+    from vector_stores.L_vecdB import LongTermDatabase
+    from vector_stores.S_vecdB import ShortTermDatabase
+    query = input("Enter your query: ")
+    long_db = LongTermDatabase()
+    short_db = ShortTermDatabase()
+    results = retrieval_tool(query, long_db, short_db)
+    print(results)
