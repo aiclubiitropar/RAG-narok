@@ -50,6 +50,7 @@ def fetch_latest_email():
     Fetch the latest email using the EmailScraper class.
     """
     scraper = EmailScraper()
+    print("Fetching latest email...")
     emails = scraper.scrape_latest_emails(count=1)
     if not emails:
         app.logger.warning("No emails found when fetching latest email.")
