@@ -19,16 +19,17 @@ def retrieval_tool(query, long_db, short_db):
     # Query the long database using its smart_query method
 
     # Use correct argument name for both DBs
-    long_results = long_db.smart_query(query, topk=10)
-    short_results = short_db.smart_query(query, topk=10)
+    long_results = long_db.smart_query(query, topk=15, top_l=5, use_late=True, doc_search=True)
+    short_results = short_db.smart_query(query, topk=15, top_l=5, use_late=True, doc_search=True)
 
     # Combine and deduplicate results from both DBs
     combined = []
     seen = set()
     for res in long_results + short_results:
-        if res not in seen:
-            combined.append(res)
-            seen.add(res)
+        res_str = str(res)
+        if res_str not in seen:
+            combined.append(res_str)
+            seen.add(res_str)
     output_lines = [f"This is the query by the user: '{query}'"]
     if combined:
         output_lines.extend([f"{i+1}. {res}" for i, res in enumerate(combined)])
