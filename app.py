@@ -1,3 +1,11 @@
+# --- Logging setup: ensure logs are written to rag.log in project root ---
+import logging
+logging.basicConfig(
+    filename='rag.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 from urllib import response
 from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
