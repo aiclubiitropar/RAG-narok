@@ -423,7 +423,7 @@ function ThinkingText() {
           initial={{ opacity: 0, y: 10, color: '#facc15' }}
           animate={{ opacity: 1, y: 0, color: color }}
           exit={{ opacity: 0, y: -10, color: '#facc15' }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.7 }}
           style={{ fontStyle: 'italic', fontWeight: 700 }}
         >
           {current}
