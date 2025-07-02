@@ -27,7 +27,7 @@ class ShortTermDatabase:
     def __init__(
         self,
         collection_prefix: str = "shortterm_db",
-        vector_size: int = 384,
+        vector_size: int = 512,
         time_threshold_days: float = 1.0,
         count_threshold: int = 100,
         fetch_latest_email: Optional[Callable[[], Dict]] = None,
@@ -141,19 +141,23 @@ class ShortTermDatabase:
         ]
         while not self._stop_event.is_set():
             if self.fetch_latest_email:
-                email = self.fetch_latest_email()
-                if email is None:
+                emails = self.fetch_latest_email()
+                if not emails:
                     logging.info("No new email found. Skipping this iteration.")
                     self._maybe_flush()
                     time.sleep(self.poll_interval)
                     continue
-                subject = email.get('subject', '')
-                from_ = email.get('from', '')
-                if any(k in subject for k in blocklist) or any(k in from_ for k in blocklist):
-                    logging.info(f"Blocked email from: {from_}, subject: {subject}")
-                elif email['id'] != self._last_email_id:
-                    self._last_email_id = email['id']
-                    self.add_emails_batch([email])
+                # Always treat as a list for robustness
+                if isinstance(emails, dict):
+                    emails = [emails]
+                for email in emails:
+                    subject = email.get('subject', '')
+                    from_ = email.get('from', '')
+                    if any(k in subject for k in blocklist) or any(k in from_ for k in blocklist):
+                        logging.info(f"Blocked email from: {from_}, subject: {subject}")
+                    elif email['id'] != self._last_email_id:
+                        self._last_email_id = email['id']
+                        self.add_emails_batch([email])
             self._maybe_flush()
             count = self.client.count(collection_name=self.collection_name).count
             print(f"Short-term DB size: {count} emails")
@@ -193,6 +197,8 @@ class ShortTermDatabase:
                 limit=topk,
                 with_payload=True
             )
+            return [results]  # Return as a list for consistency
+            
         else:
             results = self.client.search(
                 collection_name=self.collection_name,
@@ -201,60 +207,61 @@ class ShortTermDatabase:
                 with_payload=True,
                 with_vectors=False
             )
-        # Normalize Qdrant results to always be a list of ScoredPoint-like objects
-        points_list = None
-        if isinstance(results, tuple) and len(results) == 2 and isinstance(results[1], list):
-            points_list = results[1]
-        elif isinstance(results, list):
-            points_list = results
-        elif hasattr(results, 'points') and isinstance(results.points, list):
-            points_list = results.points
-        else:
-            points_list = []
+            return [results]  # Return as a list for consistency
+        # # Normalize Qdrant results to always be a list of ScoredPoint-like objects
+        # points_list = None
+        # if isinstance(results, tuple) and len(results) == 2 and isinstance(results[1], list):
+        #     points_list = results[1]
+        # elif isinstance(results, list):
+        #     points_list = results
+        # elif hasattr(results, 'points') and isinstance(results.points, list):
+        #     points_list = results.points
+        # else:
+        #     points_list = []
 
-        hits = []
-        for hit in points_list:
-            if hasattr(hit, 'id') and hasattr(hit, 'payload'):
-                payload = hit.payload if isinstance(hit.payload, dict) else {}
-                hits.append({"id": hit.id, "document": payload.get('document', '')})
-            elif isinstance(hit, tuple) and len(hit) >= 2:
-                _id = hit[0]
-                _payload = hit[1] if isinstance(hit[1], dict) else {}
-                hits.append({"id": _id, "document": _payload.get('document', '')})
+        # hits = []
+        # for hit in points_list:
+        #     if hasattr(hit, 'id') and hasattr(hit, 'payload'):
+        #         payload = hit.payload if isinstance(hit.payload, dict) else {}
+        #         hits.append({"id": hit.id, "document": payload.get('document', '')})
+        #     elif isinstance(hit, tuple) and len(hit) >= 2:
+        #         _id = hit[0]
+        #         _payload = hit[1] if isinstance(hit[1], dict) else {}
+        #         hits.append({"id": _id, "document": _payload.get('document', '')})
 
-        # After reranking, take top_l
-        hits = hits[:top_l]
+        # # After reranking, take top_l
+        # hits = hits[:top_l]
 
-        # Optionally filter by substring match if doc_search is True
-        if doc_search:
-            filtered_hits = [hit for hit in hits if query_text.lower() in hit['document'].lower()]
-            # Scroll through all points (handle pagination)
-            doc_hits = []
-            next_offset = None
-            while True:
-                scroll_result = self.client.scroll(collection_name=self.collection_name, with_payload=True, offset=next_offset)
-                points = scroll_result[0]
-                next_offset = scroll_result[1]
-                for point in points:
-                    doc = point.payload.get('document', '') if hasattr(point, 'payload') else ''
-                    if query_text.lower() in doc.lower():
-                        doc_hits.append({"id": point.id, "document": doc})
-                if not next_offset:
-                    break
-            # Merge and deduplicate by id, prioritizing reranked hits
-            seen_ids = set()
-            merged = []
-            for hit in filtered_hits:
-                if hit['id'] not in seen_ids:
-                    merged.append(hit)
-                    seen_ids.add(hit['id'])
-            for hit in doc_hits:
-                if hit['id'] not in seen_ids:
-                    merged.append(hit)
-                    seen_ids.add(hit['id'])
-            return [f"{hit['id']} | {hit['document']}" for hit in merged] if merged else []
-        else:
-            return [f"{hit['id']} | {hit['document']}" for hit in hits] if hits else []
+        # # Optionally filter by substring match if doc_search is True
+        # if doc_search:
+        #     filtered_hits = [hit for hit in hits if query_text.lower() in hit['document'].lower()]
+        #     # Scroll through all points (handle pagination)
+        #     doc_hits = []
+        #     next_offset = None
+        #     while True:
+        #         scroll_result = self.client.scroll(collection_name=self.collection_name, with_payload=True, offset=next_offset)
+        #         points = scroll_result[0]
+        #         next_offset = scroll_result[1]
+        #         for point in points:
+        #             doc = point.payload.get('document', '') if hasattr(point, 'payload') else ''
+        #             if query_text.lower() in doc.lower():
+        #                 doc_hits.append({"id": point.id, "document": doc})
+        #         if not next_offset:
+        #             break
+        #     # Merge and deduplicate by id, prioritizing reranked hits
+        #     seen_ids = set()
+        #     merged = []
+        #     for hit in filtered_hits:
+        #         if hit['id'] not in seen_ids:
+        #             merged.append(hit)
+        #             seen_ids.add(hit['id'])
+        #     for hit in doc_hits:
+        #         if hit['id'] not in seen_ids:
+        #             merged.append(hit)
+        #             seen_ids.add(hit['id'])
+        #     return [f"{hit['id']} | {hit['document']}" for hit in merged] if merged else []
+        # else:
+        #     return [f"{hit['id']} | {hit['document']}" for hit in hits] if hits else []
 
     def close(self):
         self.stop_worker()
