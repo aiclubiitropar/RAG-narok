@@ -368,15 +368,27 @@ export default function CHATUI() {
 
 function ThinkingDots() {
   const [dotCount, setDotCount] = React.useState(1);
+  const phrases = [
+    'RAGnarok is thinking',
+    'Retrieving knowledge',
+    'Consulting the archives',
+    'Summoning insights',
+    'Crunching data',
+    'Synthesizing response',
+    'Querying the vault',
+    'Gathering context'
+  ];
+  const [phraseIdx, setPhraseIdx] = React.useState(0);
   React.useEffect(() => {
     const interval = setInterval(() => {
       setDotCount(d => (d % 3) + 1);
-    }, 400);
+      setPhraseIdx(idx => (idx + 1) % phrases.length);
+    }, 1200);
     return () => clearInterval(interval);
   }, []);
   return (
     <span style={{ fontStyle: 'italic', color: '#1e293b', fontWeight: 700 }}>
-      RAGnarok is thinking{'.'.repeat(dotCount)}
+      {phrases[phraseIdx]}{'.'.repeat(dotCount)}
     </span>
   );
 }
