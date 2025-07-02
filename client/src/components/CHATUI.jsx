@@ -342,7 +342,12 @@ export default function CHATUI() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {msg.text === '__THINKING__' ? <ThinkingDots /> : <span>{msg.text}</span>}
+                  {msg.text === '__THINKING__' ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ThinkingText />
+                      <ThinkingDots />
+                    </span>
+                  ) : <span>{msg.text}</span>}
                 </motion.div>
               );
             })}
@@ -368,6 +373,18 @@ export default function CHATUI() {
 
 function ThinkingDots() {
   const [dotCount, setDotCount] = React.useState(1);
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setDotCount(d => (d % 3) + 1);
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <span style={{ fontWeight: 700, color: '#1e293b', marginLeft: 4 }}>{'.'.repeat(dotCount)}</span>
+  );
+}
+
+function ThinkingText() {
   const phrases = [
     'RAGnarok is thinking',
     'Retrieving knowledge',
@@ -378,17 +395,40 @@ function ThinkingDots() {
     'Querying the vault',
     'Gathering context'
   ];
-  const [phraseIdx, setPhraseIdx] = React.useState(0);
+  const [current, setCurrent] = React.useState(phrases[0]);
+  const [show, setShow] = React.useState(true);
+  const [color, setColor] = React.useState('#1e293b');
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setDotCount(d => (d % 3) + 1);
-      setPhraseIdx(idx => (idx + 1) % phrases.length);
-    }, 1200);
+      setColor('#facc15'); // yellow
+      setShow(false);
+      setTimeout(() => {
+        let next;
+        do {
+          next = phrases[Math.floor(Math.random() * phrases.length)];
+        } while (next === current);
+        setCurrent(next);
+        setColor('#1e293b'); // blue
+        setShow(true);
+      }, 250);
+    }, 1500);
     return () => clearInterval(interval);
-  }, []);
+    // eslint-disable-next-line
+  }, [current]);
   return (
-    <span style={{ fontStyle: 'italic', color: '#1e293b', fontWeight: 700 }}>
-      {phrases[phraseIdx]}{'.'.repeat(dotCount)}
-    </span>
+    <AnimatePresence mode="wait">
+      {show && (
+        <motion.span
+          key={current}
+          initial={{ opacity: 0, y: 10, color: '#facc15' }}
+          animate={{ opacity: 1, y: 0, color: color }}
+          exit={{ opacity: 0, y: -10, color: '#facc15' }}
+          transition={{ duration: 0.25 }}
+          style={{ fontStyle: 'italic', fontWeight: 700 }}
+        >
+          {current}
+        </motion.span>
+      )}
+    </AnimatePresence>
   );
 }
