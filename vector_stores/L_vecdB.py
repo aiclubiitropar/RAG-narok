@@ -33,7 +33,7 @@ class LongTermDatabase:
     def __init__(
         self,
         collection_prefix: str = "longterm_db",
-        vector_size: int = 512,
+        vector_size: int = 768,
         url: str = "https://df35413f-27c8-419d-aa89-4b3901514560.us-west-1-0.aws.cloud.qdrant.io",
         api_key: str = os.getenv('QDRANT_API_KEY')
     ):
@@ -145,8 +145,9 @@ class LongTermDatabase:
         """
         Hybrid query: first prefetch with dense (topk), then rerank with late embedding (ColBERT-style) and return top_l.
         If use_late is False, does dense-only search. If True, does dense prefetch + late rerank.
-        If doc_search is True, also filter by substring in the document (case-insensitive) after reranking.
+        If doc_search is True, also filter by fuzzy/substring in the document (case-insensitive) after reranking.
         """
+        import re
         dense_vec = get_dense_embedding(query_text)
         late_vec = get_late_embedding(query_text)
         # Vector search
@@ -160,8 +161,6 @@ class LongTermDatabase:
                 limit=topk,
                 with_payload=True
             )
-            return [results]
-            # print(f"Prefetched {results} points with dense vector.")
         else:
             results = self.client.search(
                 collection_name=self.collection_name,
@@ -170,64 +169,68 @@ class LongTermDatabase:
                 with_payload=True,
                 with_vectors=False
             )
-            return [results]
-        # # Normalize Qdrant results to always be a list of ScoredPoint-like objects
-        # points_list = None
-        # if isinstance(results, tuple) and len(results) == 2 and isinstance(results[1], list):
-        #     points_list = results[1]
-        # elif isinstance(results, list):
-        #     points_list = results
-        # elif hasattr(results, 'points') and isinstance(results.points, list):
-        #     points_list = results.points
-        # else:
-        #     points_list = []
+        # Normalize Qdrant results to always be a list of ScoredPoint-like objects
+        points_list = None
+        if isinstance(results, tuple) and len(results) == 2 and isinstance(results[1], list):
+            points_list = results[1]
+        elif isinstance(results, list):
+            points_list = results
+        elif hasattr(results, 'points') and isinstance(results.points, list):
+            points_list = results.points
+        else:
+            points_list = []
 
-        # hits = []
-        # for hit in points_list:
-        #     # Qdrant >=1.7 returns ScoredPoint objects
-        #     if hasattr(hit, 'id') and hasattr(hit, 'payload'):
-        #         payload = hit.payload if isinstance(hit.payload, dict) else {}
-        #         hits.append({"id": hit.id, "document": payload.get('document', '')})
-        #     # Defensive: handle tuple (id, payload) fallback
-        #     elif isinstance(hit, tuple) and len(hit) >= 2:
-        #         _id = hit[0]
-        #         _payload = hit[1] if isinstance(hit[1], dict) else {}
-        #         hits.append({"id": _id, "document": _payload.get('document', '')})
+        hits = []
+        for hit in points_list:
+            # Qdrant >=1.7 returns ScoredPoint objects
+            if hasattr(hit, 'id') and hasattr(hit, 'payload'):
+                payload = hit.payload if isinstance(hit.payload, dict) else {}
+                hits.append({"id": hit.id, "document": payload.get('document', '')})
+            # Defensive: handle tuple (id, payload) fallback
+            elif isinstance(hit, tuple) and len(hit) >= 2:
+                _id = hit[0]
+                _payload = hit[1] if isinstance(hit[1], dict) else {}
+                hits.append({"id": _id, "document": _payload.get('document', '')})
 
-        # # After reranking, take top_l
-        # hits = hits[:top_l]
+        # After reranking, take top_l
+        hits = hits[:top_l]
 
-        # # Optionally filter by substring match if doc_search is True
-        # if doc_search:
-        #     filtered_hits = [hit for hit in hits if query_text.lower() in hit['document'].lower()]
-        #     # Now also get all docs in the collection that match the substring (outside top_l reranked)
-        #     # Scroll through all points (handle pagination)
-        #     doc_hits = []
-        #     next_offset = None
-        #     while True:
-        #         scroll_result = self.client.scroll(collection_name=self.collection_name, with_payload=True, offset=next_offset)
-        #         points = scroll_result[0]
-        #         next_offset = scroll_result[1]
-        #         for point in points:
-        #             doc = point.payload.get('document', '') if hasattr(point, 'payload') else ''
-        #             if query_text.lower() in doc.lower():
-        #                 doc_hits.append({"id": point.id, "document": doc})
-        #         if not next_offset:
-        #             break
-        #     # Merge and deduplicate by id, prioritizing reranked hits
-        #     seen_ids = set()
-        #     merged = []
-        #     for hit in filtered_hits:
-        #         if hit['id'] not in seen_ids:
-        #             merged.append(hit)
-        #             seen_ids.add(hit['id'])
-        #     for hit in doc_hits:
-        #         if hit['id'] not in seen_ids:
-        #             merged.append(hit)
-        #             seen_ids.add(hit['id'])
-        #     return [f"{hit['document']}" for hit in merged] if merged else []
-        # else:
-        #     return [f"{hit['document']}" for hit in hits] if hits else []
+        # Optionally filter by fuzzy/substring match if doc_search is True
+        if doc_search:
+            # Fuzzy: match any word in query_text (case-insensitive, partial match)
+            query_words = [w for w in re.split(r'\W+', query_text.lower()) if w]
+            def fuzzy_match(doc):
+                doc_l = doc.lower()
+                return any(qw in doc_l for qw in query_words)
+
+            filtered_hits = [hit for hit in hits if fuzzy_match(hit['document'])]
+            # Now also get all docs in the collection that match the substring/fuzzy (outside top_l reranked)
+            doc_hits = []
+            next_offset = None
+            while True:
+                scroll_result = self.client.scroll(collection_name=self.collection_name, with_payload=True, offset=next_offset)
+                points = scroll_result[0]
+                next_offset = scroll_result[1]
+                for point in points:
+                    doc = point.payload.get('document', '') if hasattr(point, 'payload') else ''
+                    if fuzzy_match(doc):
+                        doc_hits.append({"id": point.id, "document": doc})
+                if not next_offset:
+                    break
+            # Merge and deduplicate by id, prioritizing reranked hits
+            seen_ids = set()
+            merged = []
+            for hit in filtered_hits:
+                if hit['id'] not in seen_ids:
+                    merged.append(hit)
+                    seen_ids.add(hit['id'])
+            for hit in doc_hits:
+                if hit['id'] not in seen_ids:
+                    merged.append(hit)
+                    seen_ids.add(hit['id'])
+            return [f"{hit['document']}" for hit in merged] if merged else []
+        else:
+            return [f"{hit['document']}" for hit in hits] if hits else []
 
     def save(self):
         pass  # Qdrant persists automatically
