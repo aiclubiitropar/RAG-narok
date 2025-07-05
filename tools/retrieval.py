@@ -19,8 +19,8 @@ def retrieval_tool(query, long_db, short_db):
     # Query the long database using its smart_query method
 
     # Use correct argument name for both DBs
-    long_results = long_db.smart_query(query, topk=5, top_l=3, use_late=True, doc_search=True)
-    short_results = short_db.smart_query(query, topk=3, top_l=3, use_late=True, doc_search=True)
+    long_results = long_db.smart_query(query, topk=15, top_l=5, use_late=True, doc_search=True)
+    short_results = short_db.smart_query(query, topk=15, top_l=5, use_late=True, doc_search=True)
 
     # Combine and deduplicate results from both DBs
     combined = []
@@ -30,9 +30,21 @@ def retrieval_tool(query, long_db, short_db):
         if res_str not in seen:
             combined.append(res_str)
             seen.add(res_str)
+
+    # Limit total context tokens (approximate: 1 token ≈ 4 chars for English)
+    max_context_tokens = 2048  # You can adjust this as needed
+    max_context_chars = max_context_tokens * 4
+    total_chars = 0
+    limited_combined = []
+    for res in combined:
+        if total_chars + len(res) > max_context_chars:
+            break
+        limited_combined.append(res)
+        total_chars += len(res)
+
     output_lines = [f"This is the query by the user: '{query}'"]
-    if combined:
-        output_lines.extend([f"{i+1}. {res}" for i, res in enumerate(combined)])
+    if limited_combined:
+        output_lines.extend([f"{i+1}. {res}" for i, res in enumerate(limited_combined)])
     else:
         output_lines.append("No results found.")
     return "\n".join(output_lines)
