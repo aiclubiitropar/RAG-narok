@@ -391,7 +391,7 @@ export default function AdminPanel() {
                 fontSize: 15,
                 fontWeight: 500,
                 outline: 'none',
-                minWidth: 220,
+                minWidth: 215,
                 marginBottom: 8
               }}
             >
@@ -447,7 +447,18 @@ export default function AdminPanel() {
             onFocus={e => e.currentTarget.style.boxShadow = '0 0 0 2px #facc1555'}
           >Download Logs</button>
         </div>
-        <div style={{ color: '#facc15', fontWeight: 600, fontSize: 15, minHeight: 24, marginTop: 6 }}>{logMessage}</div>
+        <div style={{
+          color: '#facc15',
+          fontWeight: 600,
+          fontSize: 15,
+          minHeight: 24,
+          marginTop: 6,
+          textAlign: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%'
+        }}>{logMessage}</div>
       </div>
     </div>
   );

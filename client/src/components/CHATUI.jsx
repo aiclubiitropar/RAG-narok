@@ -5,8 +5,8 @@ import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import RAGnarokLogo from './RAG_logo.png';
 
 // Inline styles for the chatbot UI
-const isMobile = window.innerWidth <= 600;
-const isTablet = window.innerWidth > 600 && window.innerWidth <= 900;
+const isMobile = window.innerWidth <= 500;
+const isTablet = window.innerWidth > 500 && window.innerWidth <= 900;
 
 const styles = {
   container: {
@@ -367,6 +367,27 @@ export default function CHATUI() {
           </button>
         </div>
       </div>
+      <div style={{
+        width: '100%',
+        textAlign: 'center',
+        marginTop: 18,
+        marginBottom: 10,
+        fontWeight: 600,
+        fontSize: isMobile ? 13 : 15,
+        color: '#facc15',
+        background: 'rgba(30,41,59,0.12)',
+        padding: isMobile ? '10px 8px' : '12px 0',
+        borderRadius: 12,
+        boxShadow: '0 1px 8px #0001',
+        position: 'relative',
+        left: 0,
+        right: 0,
+        zIndex: 1
+      }}>
+        RAGnarok is an AI assistant built using Retrieval-Augmented Generation (RAG).<br />
+        While it strives to provide accurate and relevant information, RAGnarok can make mistakes sometimes.<br />
+        Please verify critical information from official or trusted sources.
+      </div>
     </div>
   );
 }
@@ -423,7 +444,7 @@ function ThinkingText() {
           initial={{ opacity: 0, y: 10, color: '#facc15' }}
           animate={{ opacity: 1, y: 0, color: color }}
           exit={{ opacity: 0, y: -10, color: '#facc15' }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: 0.25 }}
           style={{ fontStyle: 'italic', fontWeight: 700 }}
         >
           {current}
