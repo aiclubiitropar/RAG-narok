@@ -80,13 +80,22 @@ class ShortTermDatabase:
     def add_emails_batch(self, emails: List[Dict], batch_size: int = 4):
         """
         Batch add multiple emails efficiently using upsert (multi-embedding).
-        Uses unique IDs for each email. Does NOT store metadata in the payload.
+        Uses unique IDs for each email. Skips emails on any exception. Does NOT store metadata in the payload.
+        Assumes emails are already summarized if needed.
         """
         ids, raws = [], []
         for email in emails:
-            eid = email['id']
-            ids.append(eid)
-            raws.append(email['body'])
+            try:
+                eid = email['id']
+                # No summarization here; assume body is already summarized if needed
+                body = email.get('body', '')
+                ids.append(eid)
+                raws.append(body)
+            except Exception as e:
+                logging.warning(f"Skipping email due to error (id={email.get('id', 'N/A')}): {e}")
+                continue
+        if not ids:
+            return
         emb_pairs = self._batch_get_embeddings(raws)
         points = []
         for i, eid in enumerate(ids):
@@ -151,9 +160,11 @@ class ShortTermDatabase:
                 if isinstance(emails, dict):
                     emails = [emails]
                 for email in emails:
+                    # New structure: 'from' and 'subject' are always present (may be empty string)
                     subject = email.get('subject', '')
                     from_ = email.get('from', '')
-                    if any(k in subject for k in blocklist) or any(k in from_ for k in blocklist):
+                    # Block if any blocklist string is a substring (case-insensitive) of subject or from_
+                    if any(k.lower() in subject.lower() for k in blocklist) or any(k.lower() in from_.lower() for k in blocklist):
                         logging.info(f"Blocked email from: {from_}, subject: {subject}")
                     elif email['id'] != self._last_email_id:
                         self._last_email_id = email['id']
@@ -315,8 +326,8 @@ if __name__ == "__main__":
         return None
 
     db = ShortTermDatabase(fetch_latest_email=fetch_latest_email)
-    logging.info("Starting email ingestion worker...")
-    db.run_worker()
+    # logging.info("Starting email ingestion worker...")
+    # db.run_worker()
 
     try:
         while True:
