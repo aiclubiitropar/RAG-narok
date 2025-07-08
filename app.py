@@ -53,10 +53,12 @@ os.makedirs(SHORT_TERM_PREFIX, exist_ok=True)
 long_db = LongTermDatabase(collection_prefix=LONG_TERM_PREFIX)
 
 # Update the fetch_latest_email callback to use EmailScraper
+
 def fetch_latest_email():
     """
-    Fetch the latest email using the EmailScraper class.
+    Fetch the latest email using the EmailScraper class. If summarization fails, skip the email.
     """
+    from tools.sumar import summarize_text
     scraper = EmailScraper()
     print("Fetching latest email...")
     emails = scraper.scrape_latest_emails(count=1)
@@ -64,10 +66,18 @@ def fetch_latest_email():
         app.logger.warning("No emails found when fetching latest email.")
         return None
     latest_email_id, latest_email = next(iter(emails.items()))
-    # Return as a list of dicts for objectwise ingestion
+    body = latest_email.get('body', '')
+    try:
+        summary = summarize_text(body)
+    except Exception as e:
+        app.logger.warning(f"Summarization failed for email {latest_email_id}: {e}. Skipping email.")
+        return None
+    # Return as a list of dicts for objectwise ingestion, including 'from' and 'subject'
     return [{
         'id': latest_email_id,
-        'body': latest_email.get('body', '')
+        'body': summary,
+        'from': latest_email.get('from', ''),
+        'subject': latest_email.get('subject', '')
     }]
 
 # Pass the callback to ShortTermDatabase
