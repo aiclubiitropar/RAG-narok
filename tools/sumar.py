@@ -1,7 +1,3 @@
-
-
-
-def summarize_text(text):
 from gradio_client import Client
 
 def summarize_text(text):
