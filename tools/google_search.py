@@ -68,3 +68,9 @@ def google_search_tool(query):
     except Exception as e:
         # Fallback to Zenserp on error
         return google_search2(query)
+
+if __name__ == "__main__":
+    query = input("Enter your search query: ")
+    print("\nZenserp Results:\n")
+    print(google_search2(query))
+
