@@ -10,7 +10,7 @@ import time
 
 # Add project root to Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from tools.retrieval import retrieval_tool
+from tools.retrieval import retrieval_tool_long, retrieval_tool_short
 from tools.google_search import google_search_tool
 from vector_stores.L_vecdB import LongTermDatabase
 from vector_stores.S_vecdB import ShortTermDatabase
@@ -34,14 +34,16 @@ INSTRUCTIONS = (
     "Follow EXACTLY this format:\n"
     "Question: <…>\n"
     "Thought: <…>\n"
-    "Action: <retrieval_tool | google_search_tool | Final Answer>\n"
+    "Action: <retrieval_tool_long | retrieval_tool_short | google_search_tool | Final Answer>\n"
     "Action Input: <…>\n\n"
     "1. Parse Q.\n"
-    "2. Think: choose DB or web; never say “I don't know.”\n"
-    "3. Action: always try retrieval_tool first (up to 5 refined keywords), then google_search_tool.\n"
-    "4. Provide concise tool input or final answer.\n\n"
+    "2. Think: choose DB (long/short) or web; never say “I don't know.”\n"
+    "3. Even if you know the answer, always use the RAG tools to confirm and ensure correctness before answering.\n"
+    "4. Action: try retrieval_tool_long (for static/archival/official info, all baseline info on IIT Ropar), retrieval_tool_short (for latest emails/updates), then google_search_tool.\n"
+    "5. Provide concise tool input or final answer.\n\n"
     "Tools:\n"
-    "• retrieval_tool - IIT Ropar DB\n"
+    "• retrieval_tool_long - IIT Ropar Long-term DB (archival, static, official, all baseline info on IIT Ropar)\n"
+    "• retrieval_tool_short - IIT Ropar Short-term DB (latest emails, recent updates)\n"
     "• google_search_tool - live web search\n"
 )
 
@@ -49,14 +51,21 @@ INSTRUCTIONS = (
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
 def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=os.getenv("GROQ_API_KEY")):
-    def retrieve_rag(query):
-        return retrieval_tool(query, longdb, shortdb)
+    def retrieve_long(query):
+        return retrieval_tool_long(query, longdb)
+    def retrieve_short(query):
+        return retrieval_tool_short(query, shortdb)
 
     tools = [
         Tool(
-            name="retrieval_tool",
-            func=retrieve_rag,
-            description="Use this tool to retrieve information from the IIT Ropar databases."
+            name="retrieval_tool_long",
+            func=retrieve_long,
+            description="Use this tool to retrieve information from the IIT Ropar long-term (archival/static) database."
+        ),
+        Tool(
+            name="retrieval_tool_short",
+            func=retrieve_short,
+            description="Use this tool to retrieve information from the IIT Ropar short-term (recent/emails) database."
         ),
         Tool(
             name="google_search_tool",
