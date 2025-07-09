@@ -59,6 +59,7 @@ def fetch_latest_email():
     Fetch the latest email using the EmailScraper class. If summarization fails, skip the email.
     """
     from tools.sumar import summarize_text
+    from datetime import datetime
     scraper = EmailScraper()
     print("Fetching latest email...")
     emails = scraper.scrape_latest_emails(count=1)
@@ -67,17 +68,23 @@ def fetch_latest_email():
         return None
     latest_email_id, latest_email = next(iter(emails.items()))
     body = latest_email.get('body', '')
+    from_ = latest_email.get('from', '')
+    subject = latest_email.get('subject', '')
+    timestamp = latest_email.get('timestamp', datetime.utcnow().isoformat())
     try:
         summary = summarize_text(body)
+        # Concatenate 'from', 'subject', and 'timestamp' to the summarized body
+        summary = f"From: {from_}\nSubject: {subject}\nTimestamp: {timestamp}\n{summary}"
     except Exception as e:
         app.logger.warning(f"Summarization failed for email {latest_email_id}: {e}. Skipping email.")
         return None
-    # Return as a list of dicts for objectwise ingestion, including 'from' and 'subject'
+    # Return as a list of dicts for objectwise ingestion, including 'from', 'subject', and 'timestamp'
     return [{
         'id': latest_email_id,
         'body': summary,
-        'from': latest_email.get('from', ''),
-        'subject': latest_email.get('subject', '')
+        'from': from_,
+        'subject': subject,
+        'timestamp': timestamp
     }]
 
 # Pass the callback to ShortTermDatabase
