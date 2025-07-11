@@ -45,12 +45,14 @@ INSTRUCTIONS = (
     "   Exception: It is okay to answer directly for greetings, math calculations, or general small talk.\n"
     "5. When referring to retrieved results, check and match timestamps with the context of the user query.\n"
     "6. Never say 'I don't know'. Use available tools to generate the best possible answer.\n"
-    "7. Be concise and clear in your action inputs and final responses.\n\n"
+    "7. Be concise and clear in your action inputs and final responses.\n"
+    "8. When using retrieval tools, formulate concise two-word queries, choosing key words cleverly to maximize relevance.\n\n"
     "Available Tools:\n"
     "• retrieval_tool_long — Long-term IIT Ropar DB (official, static, archival data)\n"
     "• retrieval_tool_short — Short-term IIT Ropar DB (emails, announcements, recent updates)\n"
     "• google_search_tool — Web search for external or live information\n"
 )
+
 
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
