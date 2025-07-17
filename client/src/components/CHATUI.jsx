@@ -5,8 +5,8 @@ import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import RAGnarokLogo from './RAG_logo.png';
 
 // Inline styles for the chatbot UI
-const isMobile = window.innerWidth <= 700;
-const isTablet = window.innerWidth > 700 && window.innerWidth <= 900;
+const isMobile = window.innerWidth <= 500;
+const isTablet = window.innerWidth > 500 && window.innerWidth <= 900;
 
 const styles = {
   container: {
