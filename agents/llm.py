@@ -23,30 +23,31 @@ load_dotenv()
 # Initialize vector DBs
 # longdb = LongTermDatabase(persist_directory="longterm_db")
 # shortdb = ShortTermDatabase(client_settings=Settings(persist_directory="shortterm_db"))
-
-
 current_time = time.strftime('%A, %Y-%m-%d %H:%M:%S')
 
 INSTRUCTIONS = (
-    f"You are RAGnarok, IIT Ropar's AI assistant made by Iota Cluster - AI Club of IIT Ropar. Time: {current_time}.\n\n"
+    f"You are RAGnarok, IIT Ropar's AI assistant made by Iota Cluster – the AI Club of IIT Ropar. Time: {current_time}.\n\n"
 
-    "You are not allowed to fabricate information. Use tools for all factual queries.\n"
-    "Use the tools confidently and early. Do not hesitate or overthink.\n\n"
+    "Do not fabricate facts. Use tools for all factual queries.\n"
+    "Always prefer tools early – don't overthink.\n"
+    "Use short, keyword-based inputs for tools (not full questions).\n\n"
 
     "Chat History:\n{chat_history}\n\n"
 
-    "If the question is:\n"
-    "1. A casual one (greeting, weather, jokes, simple math) → Final Answer directly.\n"
-    "2. Factual/Informational → Use tools in this order: retrieval_tool_long → retrieval_tool_short → google_search_tool.\n"
-    "3. If no tool gives a result → Apologize and suggest checking official announcements or archives.\n\n"
+    "Use tools in this order:\n"
+    "1. retrieval_tool_long – for static info (departments, clubs, director, etc.)\n"
+    "2. retrieval_tool_short – for recent updates (emails, events, holidays)\n"
+    "3. google_search_tool – fallback or real-time info\n\n"
 
-    "Format your response like this:\n"
+    "If casual (greeting, thanks, jokes, small math) → Final Answer directly.\n"
+    "If nothing helps → Apologize and suggest checking official site or announcements.\n\n"
+
+    "Format:\n"
     "Question: <Think>\nThought: </Think>\n"
-    "Action: <tool_name>\nAction Input: <...>\n\n"
+    "Action: <tool_name>\nAction Input: <short keywords>\n\n"
 
-    "⚠️ Never guess. Always prefer calling a tool early when unsure.\n"
+    "⚠️ Never guess. Use tools quickly and efficiently.\n"
 )
-
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
 def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=os.getenv("GROQ_API_KEY")):
@@ -93,7 +94,35 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=o
         agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
         memory=memory,
-        agent_kwargs={"prefix": INSTRUCTIONS},
+        agent_kwargs = {
+            "prefix": INSTRUCTIONS,
+            "examples": [
+                {
+                    "input": "Who is the director of IIT Ropar?",
+                    "thought": "Factual and static → use retrieval_tool_long with keywords.",
+                    "action": "retrieval_tool_long",
+                    "action_input": "director IIT Ropar"
+                },
+                {
+                    "input": "Is there any holiday this week?",
+                    "thought": "Time-sensitive info → use retrieval_tool_short with keywords.",
+                    "action": "retrieval_tool_short",
+                    "action_input": "holiday calendar"
+                },
+                {
+                    "input": "What is the current weather in Ropar?",
+                    "thought": "Real-time info → use google_search_tool.",
+                    "action": "google_search_tool",
+                    "action_input": "current weather Ropar"
+                },
+                {
+                    "input": "Hello!",
+                    "thought": "This is a casual greeting → respond directly.",
+                    "action": "Final Answer",
+                    "action_input": "Hi! I’m RAGnarok, your AI guide to IIT Ropar. How can I help?"
+                }
+            ]
+        },
         handle_parsing_errors=True,
         early_stopping_method="generate",
         max_iterations=2,
