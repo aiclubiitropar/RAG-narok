@@ -30,7 +30,7 @@ current_time = time.strftime('%A, %Y-%m-%d %H:%M:%S')
 INSTRUCTIONS = (
     f"You are RAGnarok, IIT Ropar's AI assistant made by Iota Cluster - AI Club of IIT Ropar. Time: {current_time}.\n"
     "Chat: {chat_history}\n\n"
-    "Question: <…>\nThought: <…>\n"
+    "Question: <Think>\nThought: </Think>\n"
     "Action: <retrieval_tool_long | retrieval_tool_short | google_search_tool | Final Answer>\n"
     "Action Input: <…>\n\n"
     "Use this order:\n"
