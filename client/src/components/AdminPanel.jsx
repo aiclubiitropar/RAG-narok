@@ -26,7 +26,7 @@ export default function AdminPanel() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('https://rag-narok-t5xd.onrender.com/admin/verify_credentials', {
+      const response = await fetch('https://rag-narok-faig.onrender.com/admin/verify_credentials', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -193,7 +193,7 @@ export default function CHATUI() {
     const user_uuid = getOrSetUserUUID();
 
     try {
-      const response = await fetch('https://rag-narok-t5xd.onrender.com/chat', {
+      const response = await fetch('https://rag-narok-faig.onrender.com/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
