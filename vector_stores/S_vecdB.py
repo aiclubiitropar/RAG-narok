@@ -28,8 +28,8 @@ class ShortTermDatabase:
         self,
         collection_prefix: str = "shortterm_db",
         vector_size: int = 768,
-        time_threshold_days: float = 1.0,
-        count_threshold: int = 100,
+        time_threshold_days: float = 15.0,  # Updated to 15 days
+        count_threshold: int = None,  # Removed count threshold
         fetch_latest_email: Optional[Callable[[], Dict]] = None,
         poll_interval: float = 60,
         qdrant_url: str = "https://df35413f-27c8-419d-aa89-4b3901514560.us-west-1-0.aws.cloud.qdrant.io",
@@ -41,7 +41,7 @@ class ShortTermDatabase:
         self.collection_name = "short_rag"
         self._ensure_collection()  # Ensure multi-vector config
         self.time_threshold = timedelta(days=time_threshold_days)
-        self.count_threshold = count_threshold
+        self.count_threshold = count_threshold  # Removed usage
         self.fetch_latest_email = fetch_latest_email
         self.poll_interval = poll_interval
         self._last_flush_time = datetime.utcnow()
@@ -118,27 +118,20 @@ class ShortTermDatabase:
     def _maybe_flush(self):
         now = datetime.utcnow()
         print(f"[MAYBE FLUSH] Checking if flush is needed at {now}...")
-        count = self.client.count(collection_name=self.collection_name).count
-        if (now - self._last_flush_time) > self.time_threshold or count >= self.count_threshold:
+        if (now - self._last_flush_time) > self.time_threshold:  # Only check time threshold
             self.flush_to_long_term()
 
     def flush_to_long_term(self):
         count = self.client.count(collection_name=self.collection_name).count
         print(f"[FLUSH] Short-term DB size before flush: {count} emails")
-        # Ensure long-term DB collection name matches convention (e.g., "long_rag")
-        long_db = LongTermDatabase(collection_prefix="longterm_db")
-        long_db.collection_name = "long_rag"  # Ensure consistent collection name
-        scroll = self.client.scroll(collection_name=self.collection_name, with_vectors=True, with_payload=True)
-        ids, vectors, documents = [], [], []
-        for point in scroll[0]:
-            ids.append(to_valid_qdrant_id(point.id))
-            vectors.append(point.vector)
-            documents.append(point.payload.get("document", ""))
-        print(f"[FLUSH] Fetched {len(ids)} items from '{self.collection_name}' for flushing.")
-        # Pass empty list for metadatas to long_db, since we do not store metadata in short-term DB
-        long_db._upsert_collection(long_db.collection_name, ids, vectors, documents, [{} for _ in ids])
-        long_db.save()
+        
+        # Fetch all points in the short-term collection
+        scroll = self.client.scroll(collection_name=self.collection_name, with_vectors=False, with_payload=False)
+        ids = [to_valid_qdrant_id(point.id) for point in scroll[0]]
+        
+        # Delete all points from the short-term collection
         self.client.delete(collection_name=self.collection_name, points=ids)
+        
         self._last_flush_time = datetime.utcnow()
         count_after = self.client.count(collection_name=self.collection_name).count
         print(f"[FLUSH] Short-term DB size after flush: {count_after} emails")
