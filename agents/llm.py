@@ -26,25 +26,11 @@ load_dotenv()
 current_time = time.strftime('%A, %Y-%m-%d %H:%M:%S')
 
 INSTRUCTIONS = (
-    f"You are RAGnarok, IIT Ropar's AI assistant. Current time is : {current_time}.\n"
-    "You were made by Iota Cluster 2025-26, the AI club of IIT Ropar.\n"
-    "Chat history: {chat_history}\n\n"
-    "You can share entrynumbers of students if asked.\n"
-    "Follow EXACTLY this format:\n"
-    "Question: <…>\n"
-    "Action: <retrieval_tool_long | retrieval_tool_short | google_search_tool | Final Answer>\n"
-    "Action Input: <…>\n\n"
-    "Thought: <…>\n"
-    "1. Always use the retrieval tools to confirm and ensure correctness before answering, even if you know the answer.\n"
-    "2. Use one-word queries in the retrieval tools, ensuring the keyword is most relevant to the search.\n"
-    "3. Check timestamps in retrieved data to ensure recency and relevance to the user's query.\n"
-    "4. If retrieval tools fail, use google_search_tool as a fallback.\n"
-    "5. Never provide outdated or incorrect information.\n"
-    "6. Action: Always prioritize retrieval_tool_long (for static/archival/official info), retrieval_tool_short (for latest emails/updates), then google_search_tool.\n"
-    "Tools:\n"
-    "• retrieval_tool_long - IIT Ropar Long-term DB (archival, static, official, all baseline info on IIT Ropar)\n"
-    "• retrieval_tool_short - IIT Ropar Short-term DB (latest emails, recent updates)\n"
-    "• google_search_tool - live web search and fallback for retrieval tools\n"
+        f"You are RAGnarok, IIT Ropar's AI assistant. Current time is: {current_time}.\n"
+        "You were created by Iota Cluster 2025-26 (AI Club, IIT Ropar).\n"
+        "Use retrieval tools to verify facts before answering.\n"
+        "Tools: retrieval_tool_long (archival), retrieval_tool_short (recent updates), google_search_tool (realtime info or fallback web search).\n"
+        "When using retrieval tools, choose the minimal one-word query for best results.\n"
 )
 
 
@@ -82,7 +68,7 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=o
     llm = ChatGroq(
         groq_api_key=api_key,
         model_name=model,
-        temperature=0.1,
+        temperature=0.7,
         max_tokens=8192,
         top_p=0.95,
     )
@@ -98,27 +84,27 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=o
             "examples": [
                 {
                     "input": "Who is the director of IIT Ropar?",
-                    "thought": "Factual and static → use retrieval_tool_long with keywords.",
+                    "thought": "Static fact → use retrieval_tool_long.",
                     "action": "retrieval_tool_long",
                     "action_input": "director IIT Ropar"
                 },
                 {
-                    "input": "Is there any holiday this week?",
-                    "thought": "Time-sensitive info → use retrieval_tool_short with keywords.",
+                    "input": "Any holidays this month?",
+                    "thought": "Recent schedule → retrieval_tool_short.",
                     "action": "retrieval_tool_short",
                     "action_input": "holiday calendar"
                 },
                 {
-                    "input": "What is the current weather in Ropar?",
-                    "thought": "Real-time info → use google_search_tool.",
+                    "input": "What happened recently in IIT Ropar?",
+                    "thought": "Real Time info & Fallback for retrieval tools → use google_search_tool.",
                     "action": "google_search_tool",
-                    "action_input": "current weather Ropar"
+                    "action_input": "What happened recently in IIT Ropar?"
                 },
                 {
                     "input": "Hello!",
-                    "thought": "This is a casual greeting → respond directly.",
+                    "thought": "Greeting → no tool needed.",
                     "action": "Final Answer",
-                    "action_input": "Hi! I’m RAGnarok, your AI guide to IIT Ropar. How can I help?"
+                    "action_input": "Hi there! I'm RAGnarok—how can I help you today?"
                 }
             ]
         },
