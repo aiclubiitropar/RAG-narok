@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import RAGnarokLogo from './RAG_logo.png';
+import ReactMarkdown from 'react-markdown';
 
 // Inline styles for the chatbot UI
 const isMobile = window.innerWidth <= 500;
@@ -261,6 +262,17 @@ export default function CHATUI() {
     maxHeight: '60vh', // Optional: limit height for better scroll
   };
 
+  // Helper function to parse and render bold text
+  function parseBoldText(text) {
+    const parts = text.split(/(\*\*.*?\*\*)/g); // Split by bold markers
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>; // Remove ** and wrap in <strong> with custom font
+      }
+      return part; // Return normal text
+    });
+  }
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh', background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)', paddingTop: 30, overflow: 'hidden' }}>
       <button style={styles.adminFloating} onClick={() => navigate('/admin')}>Admin</button>
@@ -348,7 +360,9 @@ export default function CHATUI() {
                       <ThinkingText />
                       <ThinkingDots />
                     </span>
-                  ) : <span>{msg.text}</span>}
+                  ) : (
+                    <span>{parseBoldText(msg.text)}</span>
+                  )}
                 </motion.div>
               );
             })}
