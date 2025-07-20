@@ -262,14 +262,21 @@ export default function CHATUI() {
     maxHeight: '60vh', // Optional: limit height for better scroll
   };
 
-  // Helper function to parse and render bold text
-  function parseBoldText(text) {
-    const parts = text.split(/(\*\*.*?\*\*)/g); // Split by bold markers
+  // Helper function to parse and render bold text and URLs
+  function parseTextWithFormatting(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g; // Regex to match URLs
+    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+)/g); // Split by bold markers and URLs
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>; // Remove ** and wrap in <strong> with custom font
+        return <strong key={index} style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>; // Bold text
+      } else if (urlRegex.test(part)) {
+        return (
+          <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>
+            {part}
+          </a>
+        ); // URL link
       }
-      return part; // Return normal text
+      return part; // Normal text
     });
   }
 
@@ -361,7 +368,7 @@ export default function CHATUI() {
                       <ThinkingDots />
                     </span>
                   ) : (
-                    <span>{parseBoldText(msg.text)}</span>
+                    <span>{parseTextWithFormatting(msg.text)}</span>
                   )}
                 </motion.div>
               );
