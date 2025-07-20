@@ -14,8 +14,8 @@ def retrieval_tool_long(query, long_db):
     Returns:
         str: Formatted results from the long-term database.
     """
-    long_results = long_db.smart_query(query, topk=7, top_l=5, use_late=True, doc_search=True)
-    max_context_tokens = 2048 
+    long_results = long_db.smart_query(query, topk=15, top_l=10, use_late=True, doc_search=True)
+    max_context_tokens = 1024
     max_context_chars = max_context_tokens * 4
     total_chars = 0
     limited = []
@@ -40,8 +40,8 @@ def retrieval_tool_short(query, short_db):
     Returns:
         str: Formatted results from the short-term database.
     """
-    short_results = short_db.smart_query(query, topk=7, top_l=5, use_late=True, doc_search=True)
-    max_context_tokens = 2048 
+    short_results = short_db.smart_query(query, topk=15, top_l=10, use_late=True, doc_search=True)
+    max_context_tokens = 1024 
     max_context_chars = max_context_tokens * 4
     total_chars = 0
     limited = []
