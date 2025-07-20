@@ -188,12 +188,13 @@ export default function CHATUI() {
     if (!input.trim()) return;
     setMessages(prev => [...prev, { sender: 'user', text: input }]);
     setIsThinking(true);
+    setInput(''); // Clear input to prevent further typing
     setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
 
     const user_uuid = getOrSetUserUUID();
 
     try {
-      const response = await fetch('https://rag-narok-faig.onrender.com/chat', {
+      const response = await fetch('http://localhost:5000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -361,6 +362,7 @@ export default function CHATUI() {
             onChange={e => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             style={styles.input}
+            disabled={isThinking} // Disable input when thinking
           />
           <button onClick={sendMessage} style={styles.sendButton}>
             ➤
