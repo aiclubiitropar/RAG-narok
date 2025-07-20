@@ -280,6 +280,24 @@ export default function CHATUI() {
     });
   }
 
+  // Helper function to parse and render structured backend responses
+  function parseStructuredResponse(response) {
+    try {
+      const parsed = JSON.parse(response);
+      if (parsed.action === "Final Answer" && parsed.action_input) {
+        const textWithLinksAndBold = parsed.action_input.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+                return `<a href='${url}' target='_blank' style='color: blue; text-decoration: underline;'>${text}</a>`;
+            });
+        return <span dangerouslySetInnerHTML={{ __html: textWithLinksAndBold }} />;
+      }
+    } catch (e) {
+      // If not JSON or doesn't match the structure, return as plain text
+      return response;
+    }
+    return response;
+  }
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh', background: 'linear-gradient(90deg, #1e293b 60%, #334155 100%)', paddingTop: 30, overflow: 'hidden' }}>
       <button style={styles.adminFloating} onClick={() => navigate('/admin')}>Admin</button>
@@ -368,7 +386,11 @@ export default function CHATUI() {
                       <ThinkingDots />
                     </span>
                   ) : (
-                    <span>{parseTextWithFormatting(msg.text)}</span>
+                    typeof msg.text === 'string' && msg.text.startsWith('{') ? (
+                      parseStructuredResponse(msg.text)
+                    ) : (
+                      <span>{parseTextWithFormatting(msg.text)}</span>
+                    )
                   )}
                 </motion.div>
               );
