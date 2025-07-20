@@ -144,8 +144,8 @@ def cleanup_user_rag_dict():
         del user_rag_dict[uuid]
 
 # --- Global model variable ---
-# model = 'deepseek-r1-distill-llama-70b'  # Default model
-model = 'compound-beta-kimi'
+model = 'deepseek-r1-distill-llama-70b'  # Default model
+# model = 'compound-beta-kimi'
 
 @app.route('/admin/change_model', methods=['POST'])
 def change_model():
