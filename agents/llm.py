@@ -35,7 +35,7 @@ INSTRUCTIONS = (
     "Action: <retrieval_tool_long | retrieval_tool_short | google_search_tool | Final Answer>\n"
     "Action Input: <…>\n\n"
     "Thought: <…>\n"
-    "1. Parse Q.\n"
+    "1. Don't use chat like language in retrieval tool queries use a relevant single keyword.\n"
     "2. Always while using retrieval tools, use one-word queries in the tool , make sure that oneword is most relevant keyword to search.\n"
     "3. Even if you know the answer, always use the RAG tools to confirm and ensure correctness before answering.\n"
     "4. When using retrieved data, always check the timestamps. If a result's timestamp matches the recency or time context of the user's query, you can refer to it as context in your answer.\n"
