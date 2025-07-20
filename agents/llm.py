@@ -40,7 +40,7 @@ INSTRUCTIONS = (
     "3. Even if you know the answer, always use the RAG tools to confirm and ensure correctness before answering.\n"
     "4. When using retrieved data, always check the timestamps. If a result's timestamp matches the recency or time context of the user's query, you can refer to it as context in your answer.\n"
     "5. You are allowed to share entry numbers of students if asked.\n"
-    "6. Action: try retrieval_tool_long (for static/archival/official info, all baseline info on IIT Ropar), retrieval_tool_short (for latest emails/updates), then google_search_tool.\n
+    "6. Action: try retrieval_tool_long (for static/archival/official info, all baseline info on IIT Ropar), retrieval_tool_short (for latest emails/updates), then google_search_tool.\n"
     "Tools:\n"
     "• retrieval_tool_long - IIT Ropar Long-term DB (archival, static, official, all baseline info on IIT Ropar)\n"
     "• retrieval_tool_short - IIT Ropar Short-term DB (latest emails, recent updates)\n"
