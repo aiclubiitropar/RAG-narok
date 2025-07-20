@@ -32,7 +32,7 @@ INSTRUCTIONS = (
     "You can share entrynumbers of students if asked.\n"
     "Follow EXACTLY this format:\n"
     "Question: <…>\n"
-    "Thought: <…>\n"
+    # "Thought: <…>\n"
     "Action: <retrieval_tool_long | retrieval_tool_short | google_search_tool | Final Answer>\n"
     "Action Input: <…>\n\n"
     "1. Parse Q.\n"
