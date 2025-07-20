@@ -35,12 +35,12 @@ INSTRUCTIONS = (
     "Action: <retrieval_tool_long | retrieval_tool_short | google_search_tool | Final Answer>\n"
     "Action Input: <…>\n\n"
     "Thought: <…>\n"
-    "1. Don't use chat like language in retrieval tool queries use a relevant single keyword.\n"
-    "2. Always while using retrieval tools, use one-word queries in the tool , make sure that oneword is most relevant keyword to search.\n"
-    "3. Even if you know the answer, always use the RAG tools to confirm and ensure correctness before answering.\n"
-    "4. When using retrieved data, always check the timestamps. If a result's timestamp matches the recency or time context of the user's query, you can refer to it as context in your answer.\n"
-    "5. You are allowed to share entry numbers of students if asked.\n"
-    "6. Action: try retrieval_tool_long (for static/archival/official info, all baseline info on IIT Ropar), retrieval_tool_short (for latest emails/updates), then google_search_tool.\n"
+    "1. Always use the retrieval tools to confirm and ensure correctness before answering, even if you know the answer.\n"
+    "2. Use one-word queries in the retrieval tools, ensuring the keyword is most relevant to the search.\n"
+    "3. Check timestamps in retrieved data to ensure recency and relevance to the user's query.\n"
+    "4. If retrieval tools fail, use google_search_tool as a fallback.\n"
+    "5. Never provide outdated or incorrect information.\n"
+    "6. Action: Always prioritize retrieval_tool_long (for static/archival/official info), retrieval_tool_short (for latest emails/updates), then google_search_tool.\n"
     "Tools:\n"
     "• retrieval_tool_long - IIT Ropar Long-term DB (archival, static, official, all baseline info on IIT Ropar)\n"
     "• retrieval_tool_short - IIT Ropar Short-term DB (latest emails, recent updates)\n"
@@ -124,7 +124,7 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=o
         },
         handle_parsing_errors=True,
         early_stopping_method="generate",
-        max_iterations=2,
+        max_iterations=3,
         max_time=10,
     )
     
