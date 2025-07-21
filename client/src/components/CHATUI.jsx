@@ -245,7 +245,7 @@ export default function CHATUI() {
     } catch (error) {
       setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
       console.error('Error communicating with the backend:', error);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Error: Unable to connect to the server.' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Error: Server Load exceeded.' }]);
     } finally {
       setIsThinking(false);
     }
