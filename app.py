@@ -99,10 +99,6 @@ global_worker_thread = None
 global_worker_stop_event = threading.Event()
 global_worker_running = False  # New global flag for worker status
 
-model = 'qwen/qwen3-32b'
-api_keys = [os.getenv("GROQ_API_KEY"),os.getenv("GROQ_API_KEY1"),os.getenv("GROQ_API_KEY2"),os.getenv("GROQ_API_KEY3"),os.getenv("GROQ_API_KEY4"),os.getenv("GROQ_API_KEY5"),os.getenv("GROQ_API_KEY6"),os.getenv("GROQ_API_KEY7"),os.getenv("GROQ_API_KEY8"),os.getenv("GROQ_API_KEY9"),os.getenv("GROQ_API_KEY10")]
-
-
 def shortterm_worker():
     global global_worker_running
     global_worker_running = True
@@ -149,6 +145,9 @@ def cleanup_user_rag_dict():
 
 # --- Global model variable ---
 # model = 'deepseek-r1-distill-llama-70b'  # Default model
+model = 'qwen/qwen3-32b'
+api_keys = [os.getenv("GROQ_API_KEY"),os.getenv("GROQ_API_KEY1"),os.getenv("GROQ_API_KEY2"),os.getenv("GROQ_API_KEY3"),os.getenv("GROQ_API_KEY4"),os.getenv("GROQ_API_KEY5"),os.getenv("GROQ_API_KEY6"),os.getenv("GROQ_API_KEY7"),os.getenv("GROQ_API_KEY8"),os.getenv("GROQ_API_KEY9"),os.getenv("GROQ_API_KEY10")]
+
 @app.route('/admin/change_model', methods=['POST'])
 def change_model():
     global model
