@@ -7,6 +7,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain_groq import ChatGroq
 from langchain_core.exceptions import OutputParserException
 import time
+import random
 
 # Add project root to Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -37,7 +38,7 @@ INSTRUCTIONS = (
 
 
 # Initialize the LLM Agent with Tools, Memory, and Instructions
-def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=os.getenv("GROQ_API_KEY")):
+def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b"):
     def retrieve_long(query):
         return retrieval_tool_long(query, longdb)
     def retrieve_short(query):
@@ -67,8 +68,21 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b", api_key=o
         output_key="output"
     )
 
+    api_keys = [
+        os.getenv("GROQ_API_KEY"), os.getenv("GROQ_API_KEY1"), os.getenv("GROQ_API_KEY2"),
+        os.getenv("GROQ_API_KEY3"), os.getenv("GROQ_API_KEY4"), os.getenv("GROQ_API_KEY5"),
+        os.getenv("GROQ_API_KEY6"), os.getenv("GROQ_API_KEY7"), os.getenv("GROQ_API_KEY8"),
+        os.getenv("GROQ_API_KEY9"), os.getenv("GROQ_API_KEY10")
+    ]
+
+    valid_api_keys = [key for key in api_keys if key is not None]
+    if not valid_api_keys:
+        raise ValueError("No valid API keys available.")
+
+    random_api_key = random.choice(valid_api_keys)
+
     llm = ChatGroq(
-        groq_api_key=api_key,
+        groq_api_key=random_api_key,
         model_name=model,
         temperature=0.7,
         max_tokens=8192,
