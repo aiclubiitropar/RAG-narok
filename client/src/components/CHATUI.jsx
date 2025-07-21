@@ -264,17 +264,19 @@ export default function CHATUI() {
 
   // Helper function to parse and render bold text and URLs
   function parseTextWithFormatting(text) {
-    const urlRegex = /(https?:\/\/[^\s]+)/g; // Regex to match URLs
-    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+)/g); // Split by bold markers and URLs
+    const urlRegex = /(https?:\/\/|discord\.gg\/)[^\s]+/g; // Regex to match URLs and Discord links
+    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+|discord\.gg\/[^\s]+)/g); // Split by bold markers, URLs, and Discord links
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={index} style={{ fontFamily: 'Arial, sans-serif', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>; // Bold text
       } else if (urlRegex.test(part)) {
+        const isDiscordLink = part.startsWith('discord.gg/');
+        const url = isDiscordLink ? `https://${part}` : part; // Add https:// for Discord links
         return (
-          <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>
+          <a key={index} href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>
             {part}
           </a>
-        ); // URL link
+        ); // URL or Discord link
       }
       return part; // Normal text
     });
