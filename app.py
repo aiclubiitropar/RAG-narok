@@ -99,6 +99,10 @@ global_worker_thread = None
 global_worker_stop_event = threading.Event()
 global_worker_running = False  # New global flag for worker status
 
+model = 'qwen/qwen3-32b'
+api_keys = [os.getenv("GROQ_API_KEY"),os.getenv("GROQ_API_KEY1"),os.getenv("GROQ_API_KEY2"),os.getenv("GROQ_API_KEY3"),os.getenv("GROQ_API_KEY4"),os.getenv("GROQ_API_KEY5"),os.getenv("GROQ_API_KEY6"),os.getenv("GROQ_API_KEY7"),os.getenv("GROQ_API_KEY8"),os.getenv("GROQ_API_KEY9"),os.getenv("GROQ_API_KEY10")]
+
+
 def shortterm_worker():
     global global_worker_running
     global_worker_running = True
@@ -145,9 +149,6 @@ def cleanup_user_rag_dict():
 
 # --- Global model variable ---
 # model = 'deepseek-r1-distill-llama-70b'  # Default model
-model = 'qwen/qwen3-32b'
-api_keys = [os.getenv("GROQ_API_KEY"),os.getenv("GROQ_API_KEY1"),os.getenv("GROQ_API_KEY2"),os.getenv("GROQ_API_KEY3"),os.getenv("GROQ_API_KEY4"),os.getenv("GROQ_API_KEY5"),os.getenv("GROQ_API_KEY6"),os.getenv("GROQ_API_KEY7"),os.getenv("GROQ_API_KEY8"),os.getenv("GROQ_API_KEY9"),os.getenv("GROQ_API_KEY10")]
-
 @app.route('/admin/change_model', methods=['POST'])
 def change_model():
     global model
@@ -262,24 +263,31 @@ def chat():
             return jsonify({'error': 'No query provided'}), 400
         if not user_uuid:
             return jsonify({'error': 'No user_uuid provided'}), 400
+
         global user_rag_dict, model, api_keys
         cleanup_user_rag_dict()  # Clean up expired sessions on each chat
-        print(f"Received user_uuid: {user_uuid}")
-        print(f"Current user_rag_dict keys: {list(user_rag_dict.keys())}")
+
+        app.logger.info(f"Received user_uuid: {user_uuid}")
+        app.logger.info(f"Current user_rag_dict keys: {list(user_rag_dict.keys())}")
+
         now = time.time()
         if user_uuid not in user_rag_dict:
-            random_api_key = random.choice(api_keys)
-            user_rag_dict[user_uuid] = {'rag': RAGnarok(long_db, short_db, model=model, api_key=random_api_key), 'last_access': now}
+            user_rag_dict[user_uuid] = {
+                'rag': RAGnarok(long_db, short_db, model=model),
+                'last_access': now
+            }
         else:
             user_rag_dict[user_uuid]['last_access'] = now
+
         user_rg = user_rag_dict[user_uuid]['rag']
         response_text = user_rg.invoke(query)
-        print(f"RAGnarok response: {response_text}")
+        app.logger.info(f"RAGnarok response: {response_text}")
+
         resp = make_response(jsonify({'response': response_text}), 200)
         return resp
     except Exception as e:
-        app.logger.error(f"Unexpected error in /chat endpoint: {e}")
-        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
+        app.logger.error(f"Unexpected error in /chat endpoint: {e}", exc_info=True)
+        return jsonify({'error': 'An unexpected error occurred. Please try again later.'}), 500
 
 
 # --- Admin Authentication Endpoint ---
