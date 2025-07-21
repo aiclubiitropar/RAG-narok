@@ -49,7 +49,7 @@ export default function AdminPanel() {
 
   const fetchWorkerStatus = async () => {
     try {
-      const res = await fetch('https://rag-narok-t5xd.onrender.com/admin/worker_status', {
+      const res = await fetch('https://rag-narok-faig.onrender.com/admin/worker_status', {
         method: 'GET',
         headers: {
           'X-Admin-Email': 'club.iotacluster@iitrpr.ac.in', // Ensure the admin email is sent
@@ -68,7 +68,7 @@ export default function AdminPanel() {
 
   const startWorker = async () => {
     try {
-      const res = await fetch('https://rag-narok-t5xd.onrender.com/admin/start_shortterm_worker', {
+      const res = await fetch('https://rag-narok-faig.onrender.com/admin/start_shortterm_worker', {
         method: 'POST',
       });
       const data = await res.json();
@@ -77,7 +77,7 @@ export default function AdminPanel() {
 
       // Continuously fetch worker status until stopped
       const intervalId = setInterval(async () => {
-        const statusRes = await fetch('https://rag-narok-t5xd.onrender.com/admin/worker_status');
+        const statusRes = await fetch('https://rag-narok-faig.onrender.com/admin/worker_status');
         const statusData = await statusRes.json();
         if (!statusData.running) {
           clearInterval(intervalId);
@@ -91,7 +91,7 @@ export default function AdminPanel() {
 
   const stopWorker = async () => {
     try {
-      const res = await fetch('https://rag-narok-t5xd.onrender.com/admin/stop_shortterm_worker', {
+      const res = await fetch('https://rag-narok-faig.onrender.com/admin/stop_shortterm_worker', {
         method: 'POST',
       });
       const data = await res.json();
@@ -104,7 +104,7 @@ export default function AdminPanel() {
 
   const downloadLogs = async () => {
     try {
-      const res = await fetch('https://rag-narok-t5xd.onrender.com/admin/logs');
+      const res = await fetch('https://rag-narok-faig.onrender.com/admin/logs');
       if (res.status === 404) {
         setLogMessage('Log file not found.');
         return;
@@ -134,7 +134,7 @@ export default function AdminPanel() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('https://rag-narok-t5xd.onrender.com/admin/upload_json', {
+      const res = await fetch('https://rag-narok-faig.onrender.com/admin/upload_json', {
         method: 'POST',
         body: formData,
       });
@@ -147,7 +147,7 @@ export default function AdminPanel() {
 
   const handleChangeModel = async () => {
     try {
-      const res = await fetch('https://rag-narok-t5xd.onrender.com/admin/change_model', {
+      const res = await fetch('https://rag-narok-faig.onrender.com/admin/change_model', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: selectedModel })
