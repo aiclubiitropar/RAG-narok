@@ -120,23 +120,35 @@ const getStyles = (theme) => {
     },
     header: {
       display: 'grid',
-      gridTemplateColumns: isMobile || isTablet ? 'repeat(auto-fit, minmax(100px, 1fr))' : 'auto auto auto',
+      gridTemplateColumns: isMobile || isTablet ? '1fr auto 1fr' : '1fr auto 1fr',
       alignItems: 'center',
       justifyContent: 'space-between',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
+      padding: isMobile || isTablet ? '24px' : '16px 32px', // Increased padding for larger header
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       gap: isMobile || isTablet ? '12px' : '0',
     },
-    headerGroup: {
+    headerGroupLeft: {
       display: 'flex',
       alignItems: 'center',
       gap: isMobile ? '6px' : '12px',
+      justifyContent: 'flex-start',
+    },
+    headerGroupRight: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: isMobile ? '6px' : '12px',
+      justifyContent: 'flex-end',
+    },
+    headerLogo: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     logo: {
-      width: isMobile ? 28 : 36,
-      height: isMobile ? 28 : 36,
+      width: isMobile ? 48 : 64, // Larger logo size
+      height: isMobile ? 48 : 64,
       borderRadius: '50%',
       objectFit: 'cover',
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
@@ -384,7 +396,7 @@ export default function CHATUI() {
     } catch (error) {
       setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
       console.error('Error communicating with the backend:', error);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I encountered an error. The server might be overloaded. Please try again later.' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Server under maintenance and adding new features. Please try again later.' }]);
     } finally {
       setIsThinking(false);
     }
@@ -412,15 +424,15 @@ export default function CHATUI() {
     <div style={styles.page}>
       <div style={styles.container}>
         <header style={{ ...styles.header, justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={styles.headerGroupLeft}>
                 <img src={require('./iit-ropar-01.jpg')} alt="IIT Ropar Logo" style={{ ...styles.logo, borderRadius: '6px' }} />
                 <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>IIT Ropar</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={styles.headerLogo}>
                 <img src={require('./RAG_logo.png')} alt="RAGnarok Logo" style={styles.logo} />
                 <span style={styles.title}>RAGnarok</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={styles.headerGroupRight}>
                 <img src={require('./logo_iota.png')} alt="IOTA Logo" style={styles.logo} />
                 <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>Iota Cluster</span>
                 <button onClick={navigateToAdmin} style={styles.adminButton}>Admin</button>
