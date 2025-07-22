@@ -361,9 +361,10 @@ def authenticate_request():
 
 @app.before_request
 def before_request():
-    auth_response = authenticate_request()
-    if auth_response:
-        return auth_response
+    if request.path == '/chat':
+        auth_response = authenticate_request()
+        if auth_response:
+            return auth_response
 
 if __name__ == '__main__':
     import os
