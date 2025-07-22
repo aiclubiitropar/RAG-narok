@@ -122,7 +122,7 @@ const getStyles = (theme) => {
       display: 'flex',
       flexWrap: 'wrap', // Ensure wrapping for all child elements
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'center', // Center all elements when wrapping
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
       padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
