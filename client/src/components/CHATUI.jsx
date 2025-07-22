@@ -128,6 +128,7 @@ const getStyles = (theme) => {
       padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       gap: isMobile || isTablet ? '12px' : '0',
+      flexWrap: 'wrap', // Added flexWrap to allow wrapping
     },
     headerGroup: {
       display: 'flex',
