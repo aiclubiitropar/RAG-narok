@@ -358,12 +358,15 @@ def authenticate_request():
     auth_cookie = request.cookies.get('auth_cookie')
     if auth_cookie != os.getenv('AUTH_COOKIE_SECRET'):
         return jsonify({"error": "Unauthorized access"}), 401
+    
 
 @app.before_request
 def before_request():
     if request.path == '/chat':
         auth_response = authenticate_request()
+        app.logger.info(f"Auth response: {auth_response}")
         if auth_response:
+            
             return auth_response
 
 if __name__ == '__main__':
