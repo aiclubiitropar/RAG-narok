@@ -107,27 +107,32 @@ const getStyles = (theme) => {
       alignItems: 'center',
     },
     container: {
-      width: isMobile ? '95vw' : isTablet ? '90vw' : '80vw',
-      maxWidth: 1200,
-      margin: '0 auto',
-      borderRadius: isMobile ? 8 : 16,
-      boxShadow: isMobile ? 'none' : '0 8px 30px rgba(0,0,0,0.1)',
+      width: '100vw',
+      height: '100vh',
+      margin: '0',
+      borderRadius: 0,
+      boxShadow: 'none',
       background: currentTheme.containerBg,
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
-      height: isMobile ? '100vh' : 'calc(100vh - 40px)',
-      border: isMobile ? 'none' : `1px solid ${currentTheme.borderColor}`,
+      border: 'none',
       transition: 'background 0.3s ease-in-out, border 0.3s ease-in-out',
     },
     header: {
-      display: 'flex',
+      display: 'grid',
+      gridTemplateAreas: `
+        'iit-ropar admin'
+        'ragnarok ragnarok'
+        'iota-cluster dark-mode'
+      `,
+      gridTemplateRows: isMobile ? '1fr 2fr 1fr' : 'auto',
+      gridTemplateColumns: isMobile ? '1fr 1fr' : 'auto',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      flexWrap: isMobile ? 'wrap' : 'nowrap', // Allow wrapping for mobile
+      justifyItems: 'center',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile ? '12px' : '16px 24px',
+      padding: isMobile ? '16px' : '24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       flexShrink: 0,
       transition: 'background 0.3s ease-in-out, border 0.3s ease-in-out',
@@ -136,11 +141,10 @@ const getStyles = (theme) => {
       display: 'flex',
       alignItems: 'center',
       gap: isMobile ? '8px' : '12px',
-      flexDirection: isMobile ? 'column' : 'row', // Stack items vertically on mobile
     },
     logo: {
-      width: isMobile ? 28 : 36,
-      height: isMobile ? 28 : 36,
+      width: isMobile ? 40 : 50,
+      height: isMobile ? 40 : 50,
       borderRadius: '50%',
       objectFit: 'cover',
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
@@ -178,7 +182,7 @@ const getStyles = (theme) => {
     },
     chatArea: {
       flex: 1,
-      padding: isMobile ? '8px 6px' : '16px',
+      padding: isMobile ? '0' : '16px',
       overflowY: 'auto',
       background: currentTheme.chatAreaBg,
       display: 'flex',
@@ -427,17 +431,19 @@ export default function CHATUI() {
     <div style={styles.page}>
       <div style={styles.container}>
         <header style={{ ...styles.header, justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', gridArea: 'iit-ropar' }}>
                 <img src={require('./iit-ropar-01.jpg')} alt="IIT Ropar Logo" style={{ ...styles.logo, borderRadius: '6px' }} />
                 <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>IIT Ropar</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexDirection: 'column', gridArea: 'ragnarok' }}>
                 <img src={require('./RAG_logo.png')} alt="RAGnarok Logo" style={styles.logo} />
                 <span style={styles.title}>RAGnarok</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', gridArea: 'iota-cluster' }}>
                 <img src={require('./logo_iota.png')} alt="IOTA Logo" style={styles.logo} />
                 <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>Iota Cluster</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', gridArea: 'dark-mode' }}>
                 <button onClick={navigateToAdmin} style={styles.adminButton}>Admin</button>
                 <button onClick={toggleTheme} style={styles.themeToggleButton} aria-label="Toggle theme">
                     <AnimatePresence mode="wait">
