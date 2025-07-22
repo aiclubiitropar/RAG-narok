@@ -100,8 +100,6 @@ global_worker_stop_event = threading.Event()
 global_worker_running = False  # New global flag for worker status
 
 model = 'qwen/qwen3-32b'
-api_keys = [os.getenv("GROQ_API_KEY"),os.getenv("GROQ_API_KEY1"),os.getenv("GROQ_API_KEY2"),os.getenv("GROQ_API_KEY3"),os.getenv("GROQ_API_KEY4"),os.getenv("GROQ_API_KEY5"),os.getenv("GROQ_API_KEY6"),os.getenv("GROQ_API_KEY7"),os.getenv("GROQ_API_KEY8"),os.getenv("GROQ_API_KEY9"),os.getenv("GROQ_API_KEY10")]
-
 
 def shortterm_worker():
     global global_worker_running
@@ -354,6 +352,18 @@ def download_logs():
 @app.route('/', methods=['GET'])
 def index():
     return "RAG-narok backend is running.", 200
+
+# Middleware to authenticate requests based on the auth cookie
+def authenticate_request():
+    auth_cookie = request.cookies.get('auth_cookie')
+    if auth_cookie != os.getenv('AUTH_COOKIE_SECRET'):
+        return jsonify({"error": "Unauthorized access"}), 401
+
+@app.before_request
+def before_request():
+    auth_response = authenticate_request()
+    if auth_response:
+        return auth_response
 
 if __name__ == '__main__':
     import os
