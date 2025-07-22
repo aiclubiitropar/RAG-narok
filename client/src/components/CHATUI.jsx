@@ -124,9 +124,10 @@ const getStyles = (theme) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
+      flexWrap: isMobile ? 'wrap' : 'nowrap', // Allow wrapping for mobile
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile ? '8px' : '12px 24px',
+      padding: isMobile ? '12px' : '16px 24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       flexShrink: 0,
       transition: 'background 0.3s ease-in-out, border 0.3s ease-in-out',
@@ -134,7 +135,8 @@ const getStyles = (theme) => {
     headerGroup: {
       display: 'flex',
       alignItems: 'center',
-      gap: isMobile ? '6px' : '12px',
+      gap: isMobile ? '8px' : '12px',
+      flexDirection: isMobile ? 'column' : 'row', // Stack items vertically on mobile
     },
     logo: {
       width: isMobile ? 28 : 36,
@@ -159,6 +161,7 @@ const getStyles = (theme) => {
       cursor: 'pointer',
       fontSize: 14,
       transition: 'background 0.2s, color 0.2s',
+      alignSelf: isMobile ? 'center' : 'flex-end', // Center button on mobile
     },
     themeToggleButton: {
         background: 'rgba(255,255,255,0.1)',
@@ -171,6 +174,7 @@ const getStyles = (theme) => {
         justifyContent: 'center',
         cursor: 'pointer',
         color: currentTheme.titleColor,
+        alignSelf: isMobile ? 'center' : 'flex-end', // Center toggle on mobile
     },
     chatArea: {
       flex: 1,
