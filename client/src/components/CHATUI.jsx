@@ -1,11 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Helper to check device size ---
-const isMobile = window.innerWidth <= 768; // Adjusted breakpoint for better responsiveness
-const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024; // Adjusted breakpoint for tablets
-const isPortraitMobile = window.innerWidth <= 768 && window.innerHeight > window.innerWidth; // Check for portrait mode
-
 // --- SVG Icon Components (to replace react-icons) ---
 const ChevronDownIcon = ({ size = 14, color = 'currentColor' }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -39,7 +34,6 @@ const MoonIcon = ({ size = 18, color = 'currentColor' }) => (
   </svg>
 );
 
-
 // --- Theming and Styles ---
 const themes = {
   light: {
@@ -49,7 +43,7 @@ const themes = {
     headerColor: '#ffffff',
     titleColor: '#facc15',
     chatAreaBg: '#f1f5f9',
-    botMessageBg: 'linear-gradient(90deg, #d1d5db 0%, #e5e7eb 100%)', // Darker in light mode
+    botMessageBg: 'linear-gradient(90deg, #d1d5db 0%, #e5e7eb 100%)',
     botMessageColor: '#1e293b',
     userMessageBg: 'linear-gradient(90deg, #facc15 0%, #fbbf24 100%)',
     userMessageColor: '#1e293b',
@@ -73,7 +67,7 @@ const themes = {
     headerColor: '#e2e8f0',
     titleColor: '#facc15',
     chatAreaBg: '#2d3748',
-    botMessageBg: 'linear-gradient(90deg, #5a6473 0%, #3b4252 100%)', // Lighter in dark mode
+    botMessageBg: 'linear-gradient(90deg, #5a6473 0%, #3b4252 100%)',
     botMessageColor: '#f7fafc',
     userMessageBg: 'linear-gradient(90deg, #facc15 0%, #fbbf24 100%)',
     userMessageColor: '#1e293b',
@@ -92,8 +86,12 @@ const themes = {
   }
 };
 
-const getStyles = (theme) => {
+const getStyles = (theme, dims) => {
   const currentTheme = themes[theme];
+  const isMobile = dims.width <= 768;
+  const isTablet = dims.width > 768 && dims.width <= 1024;
+  const isPortraitMobile = isMobile && dims.height > dims.width;
+
   return {
     page: {
       position: 'relative',
@@ -120,35 +118,23 @@ const getStyles = (theme) => {
     },
     header: {
       display: 'grid',
-      gridTemplateColumns: isMobile || isTablet ? '1fr auto 1fr' : '1fr auto 1fr',
+      gridTemplateColumns: isMobile || isTablet ? 'repeat(auto-fit, minmax(100px, 1fr))' : 'auto auto auto',
       alignItems: 'center',
       justifyContent: 'space-between',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile || isTablet ? '24px' : '16px 32px', // Increased padding for larger header
+      padding: isMobile || isTablet ? '16px' : '12px 24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       gap: isMobile || isTablet ? '12px' : '0',
     },
-    headerGroupLeft: {
+    headerGroup: {
       display: 'flex',
       alignItems: 'center',
       gap: isMobile ? '6px' : '12px',
-      justifyContent: 'flex-start',
-    },
-    headerGroupRight: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: isMobile ? '6px' : '12px',
-      justifyContent: 'flex-end',
-    },
-    headerLogo: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
     },
     logo: {
-      width: isMobile ? 48 : 64, // Larger logo size
-      height: isMobile ? 48 : 64,
+      width: isMobile ? 28 : 36,
+      height: isMobile ? 28 : 36,
       borderRadius: '50%',
       objectFit: 'cover',
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
@@ -171,20 +157,20 @@ const getStyles = (theme) => {
       transition: 'background 0.2s, color 0.2s',
     },
     themeToggleButton: {
-        background: 'rgba(255,255,255,0.1)',
-        border: '1px solid rgba(255,255,255,0.2)',
-        borderRadius: '50%',
-        width: 36,
-        height: 36,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        color: currentTheme.titleColor,
+      background: 'rgba(255,255,255,0.1)',
+      border: '1px solid rgba(255,255,255,0.2)',
+      borderRadius: '50%',
+      width: 36,
+      height: 36,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      color: currentTheme.titleColor,
     },
     chatArea: {
       flex: 1,
-      padding: isMobile ? '20px 6px' : '20px 16px', // Shift first bot message slightly down
+      padding: isMobile ? '20px 6px' : '20px 16px',
       overflowY: 'auto',
       background: currentTheme.chatAreaBg,
       display: 'flex',
@@ -225,13 +211,13 @@ const getStyles = (theme) => {
       display: 'inline-block',
     },
     reasoningToggle: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        cursor: 'pointer',
-        color: currentTheme.reasoningTitleColor,
-        fontWeight: 700,
-        fontSize: 14,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      cursor: 'pointer',
+      color: currentTheme.reasoningTitleColor,
+      fontWeight: 700,
+      fontSize: 14,
     },
     inputArea: {
       display: 'flex',
@@ -287,7 +273,7 @@ function getOrSetThemePreference(theme) {
     return theme;
   }
   const match = document.cookie.match(new RegExp('(^| )' + cookieName + '=([^;]+)'));
-  return match ? match[2] : 'light'; // Default to 'light' theme if no cookie is found
+  return match ? match[2] : 'light'; // Default to 'light'
 }
 
 // Function to set the authentication cookie
@@ -300,7 +286,15 @@ function setAuthCookie() {
 }
 
 export default function CHATUI() {
-  const [theme, setTheme] = useState(getOrSetThemePreference()); // Initialize theme from cookie
+  // Responsive dimensions
+  const [dims, setDims] = useState({ width: window.innerWidth, height: window.innerHeight });
+  useEffect(() => {
+    const onResize = () => setDims({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const [theme, setTheme] = useState(getOrSetThemePreference());
   const [messages, setMessages] = useState([
     { sender: 'bot', text: "Hello! I'm RAGnarok, an AI assistant. How can I help you today?" }
   ]);
@@ -308,12 +302,9 @@ export default function CHATUI() {
   const [isThinking, setIsThinking] = useState(false);
   const [reasoningStates, setReasoningStates] = useState({});
   const scrollRef = useRef(null);
-  
-  // This replaces useNavigate for simple navigation.
-  // In a real app, you'd use the router's navigate function.
-  const navigateToAdmin = () => window.location.href = '/admin';
 
-  const styles = getStyles(theme);
+  const navigateToAdmin = () => window.location.href = '/admin';
+  const styles = getStyles(theme, dims);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -322,22 +313,18 @@ export default function CHATUI() {
   }, [messages]);
 
   useEffect(() => {
-    setAuthCookie(); // Set the authentication cookie on component mount
+    setAuthCookie();
   }, []);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => {
-      const newTheme = prevTheme === 'light' ? 'dark' : 'light';
-      getOrSetThemePreference(newTheme); // Update the cookie with the new theme
-      return newTheme;
-    });
+    setTheme(prev => getOrSetThemePreference(prev === 'light' ? 'dark' : 'light'));
   };
 
   function getOrSetUserUUID() {
     const cookieName = 'user_uuid';
     const match = document.cookie.match(new RegExp('(^| )' + cookieName + '=([^;]+)'));
     if (match) return match[2];
-    const uuid = crypto.randomUUID ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+    const uuid = crypto.randomUUID ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
     document.cookie = `${cookieName}=${uuid}; path=/; SameSite=Lax;`;
     return uuid;
   }
@@ -348,14 +335,11 @@ export default function CHATUI() {
     setMessages(newMessages);
     setIsThinking(true);
     setInput('');
-    
-    // Add thinking message after a short delay for better UX
     setTimeout(() => {
-        setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
     }, 300);
 
     const user_uuid = getOrSetUserUUID();
-
     try {
       const response = await fetch('https://rag-narok-faig.onrender.com/chat', {
         method: 'POST',
@@ -363,59 +347,44 @@ export default function CHATUI() {
         body: JSON.stringify({ query: input, user_uuid }),
         credentials: 'include',
       });
-
       if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-
       const data = await response.json();
       setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
-
       if (data.error) {
         setMessages(prev => [...prev, { sender: 'bot', text: `Error: ${data.error}` }]);
       } else {
         let botText = data.response;
         let reasoning = '';
-
         if (typeof botText === 'string' && botText.includes('<think>')) {
-          const thinkStart = botText.indexOf('<think>') + 7;
-          const thinkEnd = botText.indexOf('</think>');
-          reasoning = botText.substring(thinkStart, thinkEnd);
-          botText = botText.substring(thinkEnd + 8).trim();
+          const start = botText.indexOf('<think>') + 7;
+          const end = botText.indexOf('</think>');
+          reasoning = botText.slice(start, end);
+          botText = botText.slice(end + 8).trim();
         }
-
         if (reasoning) {
-          const reasoningIdx = messages.length + 1; // Predict index
-          setReasoningStates(states => ({ ...states, [reasoningIdx]: true }));
+          const idx = messages.length + 1;
+          setReasoningStates(s => ({ ...s, [idx]: true }));
           setMessages(prev => [...prev, { sender: 'bot', text: `**Reasoning:** ${reasoning}`, type: 'reasoning' }]);
-          
-          setTimeout(() => {
-            setReasoningStates(states => ({ ...states, [reasoningIdx]: false }));
-          }, 4000); // Auto-collapse after 4 seconds
+          setTimeout(() => setReasoningStates(s => ({ ...s, [idx]: false })), 4000);
         }
         setMessages(prev => [...prev, { sender: 'bot', text: botText }]);
       }
     } catch (error) {
       setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
-      console.error('Error communicating with the backend:', error);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Server under maintenance and adding new features. Please try again later.' }]);
+      console.error('Error communicating with backend:', error);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I encountered an error. The server might be overloaded. Please try again later.' }]);
     } finally {
       setIsThinking(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !isThinking) sendMessage();
-  };
+  const handleKeyPress = e => { if (e.key === 'Enter' && !isThinking) sendMessage(); };
 
   function parseTextWithFormatting(text) {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index}>{part.slice(2, -2)}</strong>;
-      }
-      if (urlRegex.test(part)) {
-        return <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>{part}</a>;
-      }
+    return text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+)/g).map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
+      if (urlRegex.test(part)) return <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>{part}</a>;
       return part;
     });
   }
@@ -424,182 +393,12 @@ export default function CHATUI() {
     <div style={styles.page}>
       <div style={styles.container}>
         <header style={{ ...styles.header, justifyContent: 'space-between' }}>
-            <div style={styles.headerGroupLeft}>
-                <img src={require('./iit-ropar-01.jpg')} alt="IIT Ropar Logo" style={{ ...styles.logo, borderRadius: '6px' }} />
-                <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>IIT Ropar</span>
-            </div>
-            <div style={styles.headerLogo}>
-                <img src={require('./RAG_logo.png')} alt="RAGnarok Logo" style={styles.logo} />
-                <span style={styles.title}>RAGnarok</span>
-            </div>
-            <div style={styles.headerGroupRight}>
-                <img src={require('./logo_iota.png')} alt="IOTA Logo" style={styles.logo} />
-                <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>Iota Cluster</span>
-                <button onClick={navigateToAdmin} style={styles.adminButton}>Admin</button>
-                <button onClick={toggleTheme} style={styles.themeToggleButton} aria-label="Toggle theme">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={theme}
-                            initial={{ opacity: 0, rotate: -90 }}
-                            animate={{ opacity: 1, rotate: 0 }}
-                            exit={{ opacity: 0, rotate: 90 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {theme === 'light' ? <MoonIcon size={18} /> : <SunIcon size={18} />}
-                        </motion.div>
-                    </AnimatePresence>
-                </button>
-            </div>
-        </header>
-
-        <div style={styles.chatArea} ref={scrollRef}>
-          <AnimatePresence>
-            {messages.map((msg, idx) => {
-              if (msg.type === 'reasoning') {
-                const isExpanded = reasoningStates[idx] !== false;
-                return (
-                  <motion.div key={idx} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    {isExpanded ? (
-                      <div style={{ ...styles.message, ...styles.botMessage, ...styles.reasoningBox }}>
-                        <div style={styles.reasoningToggle} onClick={() => setReasoningStates(s => ({ ...s, [idx]: false }))}>
-                          <ChevronDownIcon size={14} color={styles.reasoningChevronColor} />
-                          <span>Reasoning</span>
-                        </div>
-                        <p style={{ margin: '8px 0 0', paddingLeft: '22px' }}>{msg.text.replace('**Reasoning:** ', '')}</p>
-                      </div>
-                    ) : (
-                      <div style={{ alignSelf: 'flex-start' }} onClick={() => setReasoningStates(s => ({ ...s, [idx]: true }))}>
-                         <div style={{...styles.reasoningToggle, padding: '4px 8px'}}>
-                            <ChevronRightIcon size={14} color={styles.reasoningChevronColor} />
-                            <span>Reasoning</span>
-                         </div>
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              }
-              return (
-                <motion.div
-                  key={idx}
-                  layout
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    ...(msg.sender === 'bot' ? { flexDirection: 'row' } : { flexDirection: 'row-reverse' }),
-                  }}
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3, type: 'spring', stiffness: 150, damping: 20 }}
-                >
-                  {msg.sender === 'bot' && (
-                    <img
-                      src={require('./RAG_logo.png')}
-                      alt="RAGnarok Avatar"
-                      style={{ width: 40, height: 40, borderRadius: '50%' }}
-                    />
-                  )}
-                  <div
-                    style={{
-                      ...styles.message,
-                      ...(msg.sender === 'bot' ? styles.botMessage : styles.userMessage),
-                    }}
-                  >
-                    {msg.text === '__THINKING__' ? (
-                      <ThinkingIndicator theme={theme} />
-                    ) : (
-                      <span>{parseTextWithFormatting(msg.text)}</span>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-
-        <div style={styles.inputArea}>
-          <input
-            type="text"
-            placeholder="Type a message..."
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            style={styles.input}
-            disabled={isThinking}
-          />
-          <button onClick={sendMessage} style={styles.sendButton} disabled={isThinking}>
-            ➤
-          </button>
-        </div>
-      </div>
-      <div style={styles.disclaimer}>
-        RAGnarok is an AI assistant built using Retrieval-Augmented Generation.
-        While it strives to be accurate, mistakes can happen. Please verify critical information.
-      </div>
-    </div>
-  );
-}
-
-function ThinkingIndicator({ theme }) {
-    const phrases = [
-        'RAGnarok is thinking', 'Retrieving knowledge', 'Consulting the archives',
-        'Summoning insights', 'Crunching data', 'Synthesizing response',
-        'Querying the vault', 'Gathering context'
-    ];
-    const [current, setCurrent] = useState(phrases[0]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrent(phrases[Math.floor(Math.random() * phrases.length)]);
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const dotColor = theme === 'light' ? '#1e293b' : '#f7fafc';
-
-    return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <AnimatePresence mode="wait">
-                <motion.span
-                    key={current}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                    style={{ fontStyle: 'italic', fontWeight: 500 }}
-                >
-                    {current}
-                </motion.span>
-            </AnimatePresence>
-            <ThinkingDots color={dotColor} />
-        </div>
-    );
-}
-
-function ThinkingDots({ color }) {
-  return (
-    <div style={{ display: 'flex', gap: 2 }}>
-      {[0, 1, 2].map(i => (
-        <motion.span
-          key={i}
-          style={{
-            width: 6, height: 6,
-            backgroundColor: color,
-            borderRadius: '50%',
-          }}
-          animate={{
-            y: [0, -4, 0],
-            opacity: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 1.2,
-            repeat: Infinity,
-            delay: i * 0.2,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src={require('./iit-ropar-01.jpg')} alt="IIT Ropar Logo" style={{ ...styles.logo, borderRadius: '6px' }} />
+            <span style={{ fontWeight: 600, fontSize: dims.width <= 768 ? 14 : 16 }}>IIT Ropar</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src={require('./RAG_logo.png')} alt="RAGnarok Logo" style={styles.logo} />
+            <span style={styles.title}>RAGnarok</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
