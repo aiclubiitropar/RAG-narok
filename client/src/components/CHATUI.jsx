@@ -119,13 +119,15 @@ const getStyles = (theme) => {
       border: `1px solid ${currentTheme.borderColor}`,
     },
     header: {
-      display: 'flex',
+      display: 'grid',
+      gridTemplateColumns: isMobile || isTablet ? 'repeat(auto-fit, minmax(100px, 1fr))' : 'auto auto auto',
       alignItems: 'center',
       justifyContent: 'space-between',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile ? '8px' : '12px 24px',
+      padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
       borderBottom: `1px solid ${currentTheme.borderColor}`,
+      gap: isMobile || isTablet ? '12px' : '0',
     },
     headerGroup: {
       display: 'flex',
@@ -170,7 +172,7 @@ const getStyles = (theme) => {
     },
     chatArea: {
       flex: 1,
-      padding: isMobile ? '0 6px' : '0 16px', // Set top padding to 0
+      padding: isMobile ? '20px 6px' : '20px 16px', // Shift first bot message slightly down
       overflowY: 'auto',
       background: currentTheme.chatAreaBg,
       display: 'flex',
