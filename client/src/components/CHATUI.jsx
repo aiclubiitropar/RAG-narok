@@ -119,8 +119,8 @@ const getStyles = (theme) => {
       border: `1px solid ${currentTheme.borderColor}`,
     },
     header: {
-      display: 'grid',
-      gridTemplateColumns: isMobile || isTablet ? 'repeat(auto-fit, minmax(100px, 1fr))' : 'auto auto auto',
+      display: 'flex',
+      flexWrap: 'wrap', // Ensure wrapping for all child elements
       alignItems: 'center',
       justifyContent: 'space-between',
       background: currentTheme.headerBg,
@@ -128,7 +128,6 @@ const getStyles = (theme) => {
       padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       gap: isMobile || isTablet ? '12px' : '0',
-      flexWrap: 'wrap', // Added flexWrap to allow wrapping
     },
     headerGroup: {
       display: 'flex',
