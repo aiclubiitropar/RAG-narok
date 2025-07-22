@@ -126,13 +126,13 @@ const getStyles = (theme) => {
         'ragnarok ragnarok'
         'iota-cluster dark-mode'
       `,
-      gridTemplateRows: isMobile ? '1fr 2fr 1fr' : 'auto',
+      gridTemplateRows: isMobile ? '1fr 3fr 1fr' : 'auto', // Increased height for the header
       gridTemplateColumns: isMobile ? '1fr 1fr' : 'auto',
       alignItems: 'center',
       justifyItems: 'center',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile ? '16px' : '24px',
+      padding: isMobile ? '20px' : '32px', // Adjusted padding for better spacing
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       flexShrink: 0,
       transition: 'background 0.3s ease-in-out, border 0.3s ease-in-out',
@@ -182,7 +182,7 @@ const getStyles = (theme) => {
     },
     chatArea: {
       flex: 1,
-      padding: isMobile ? '0' : '16px',
+      padding: '0', // Removed padding to make it flush with the screen
       overflowY: 'auto',
       background: currentTheme.chatAreaBg,
       display: 'flex',
