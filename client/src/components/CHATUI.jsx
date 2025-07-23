@@ -120,11 +120,15 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateColumns: isMobile || isTablet ? 'repeat(3, minmax(100px, 1fr))' : 'none',
-      gridAutoRows: isMobile || isTablet ? 'auto' : 'none',
+      gridTemplateColumns: isMobile || isTablet ? '1fr auto 1fr' : 'none',
+      gridTemplateRows: isMobile || isTablet ? 'auto auto' : 'none',
+      gridTemplateAreas: isMobile || isTablet
+        ? `"logo title title"
+           "logo admin theme"`
+        : 'none',
       justifyContent: isMobile || isTablet ? 'center' : 'space-between',
-      gap: isMobile || isTablet ? '16px' : '0',
       alignItems: 'center',
+      gap: isMobile || isTablet ? '12px' : '0',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
       padding: isMobile || isTablet ? '16px' : '12px 24px',
@@ -132,7 +136,7 @@ const getStyles = (theme) => {
       position: 'relative',
     },
     logo: {
-      gridColumn: isMobile || isTablet ? '1 / 2' : 'auto',
+      gridArea: isMobile || isTablet ? 'logo' : 'auto',
       justifySelf: 'center',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
@@ -141,7 +145,7 @@ const getStyles = (theme) => {
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
     },
     title: {
-      gridColumn: isMobile || isTablet ? '2 / 3' : 'auto',
+      gridArea: isMobile || isTablet ? 'title' : 'auto',
       justifySelf: 'center',
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
@@ -150,7 +154,7 @@ const getStyles = (theme) => {
       color: currentTheme.titleColor,
     },
     adminButton: {
-      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
+      gridArea: isMobile || isTablet ? 'admin' : 'auto',
       justifySelf: 'center',
       background: 'transparent',
       color: currentTheme.headerColor,
@@ -163,7 +167,7 @@ const getStyles = (theme) => {
       transition: 'background 0.2s, color 0.2s',
     },
     themeToggleButton: {
-      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
+      gridArea: isMobile || isTablet ? 'theme' : 'auto',
       justifySelf: 'center',
       background: 'rgba(255,255,255,0.1)',
       border: '1px solid rgba(255,255,255,0.2)',
