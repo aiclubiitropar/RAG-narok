@@ -129,14 +129,14 @@ const getStyles = (theme) => {
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       gap: isMobile || isTablet ? '12px' : '0',
       position: 'relative', // Allow absolute positioning for centered elements
+      flexDirection: isMobile || isTablet ? 'column' : 'row', // Stack elements vertically in responsive mode
     },
     headerGroup: {
       display: 'flex',
       alignItems: 'center',
       gap: isMobile ? '6px' : '12px',
-      position: isMobile || isTablet ? 'absolute' : 'static', // Center in responsive mode
-      left: isMobile || isTablet ? '50%' : 'auto',
-      transform: isMobile || isTablet ? 'translateX(-50%)' : 'none',
+      position: isMobile || isTablet ? 'relative' : 'static', // Adjust positioning for responsive mode
+      justifyContent: isMobile || isTablet ? 'center' : 'flex-start', // Center in responsive mode
     },
     logo: {
       width: isMobile ? 28 : 36,
