@@ -120,13 +120,14 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateColumns: isMobile || isTablet ? 'auto 1fr' : 'none',
+      gridTemplateColumns: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
       gridTemplateRows: isMobile || isTablet ? 'repeat(3, auto)' : 'none',
       gridTemplateAreas: isMobile || isTablet
-        ? `"logo title"
-           "logo admin"`
+        ? `"logo title admin"
+           "logo title admin"
+           "logo title admin"`
         : 'none',
-      justifyContent: isMobile || isTablet ? 'start' : 'space-between',
+      justifyContent: isMobile || isTablet ? 'center' : 'space-between',
       alignItems: 'center',
       gap: isMobile || isTablet ? '8px' : '0',
       background: currentTheme.headerBg,
@@ -137,7 +138,7 @@ const getStyles = (theme) => {
     },
     logo: {
       gridArea: isMobile || isTablet ? 'logo' : 'auto',
-      justifySelf: 'start',
+      justifySelf: 'center',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
       borderRadius: '50%',
@@ -146,11 +147,11 @@ const getStyles = (theme) => {
     },
     title: {
       gridArea: isMobile || isTablet ? 'title' : 'auto',
-      justifySelf: 'start',
+      justifySelf: 'center',
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
       letterSpacing: 0.5,
-      textAlign: 'left',
+      textAlign: 'center',
       color: currentTheme.titleColor,
     },
     adminButton: {
