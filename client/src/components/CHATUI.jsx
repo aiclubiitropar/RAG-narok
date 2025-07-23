@@ -137,7 +137,7 @@ const getStyles = (theme) => {
       position: 'relative',
     },
     logo: {
-      gridArea: isMobile || isTablet ? 'title' : 'auto',
+      gridArea: isMobile || isTablet ? 'logo' : 'auto',
       justifySelf: 'center',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
