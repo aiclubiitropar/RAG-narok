@@ -120,38 +120,22 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateRows: isMobile || isTablet ? 'auto auto auto' : 'none',
+      gridTemplateRows: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
       gridTemplateColumns: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
       gridTemplateAreas: isMobile || isTablet
-        ? `"iit-ropar rag dark-mode"
-           "iota . admin"
-           ". . ."`
+        ? `". iit-ropar ."
+           ". rag ."
+           "dark-mode admin ."`
         : 'none',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
+      padding: isMobile || isTablet ? '16px' : '12px 24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       gap: isMobile || isTablet ? '12px' : '0',
-      position: 'relative', // Allow absolute positioning for centered elements
-      flexDirection: isMobile || isTablet ? 'column' : 'row', // Stack elements vertically in responsive mode
-    },
-    headerGroup: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: isMobile ? '6px' : '12px',
-      position: isMobile || isTablet ? 'relative' : 'static', // Adjust positioning for responsive mode
-      justifyContent: 'center', // Center items in their grid cells
-      width: '100%', // Take full width to align to the left
-      paddingLeft: isMobile || isTablet ? '0' : 'inherit', // Remove padding on the left in responsive mode
-      margin: 0, // Explicitly set margin to 0
-      marginLeft: 0, // Ensure no unintended left margin
-    },
-    emptyGrid: {
-      gridArea: isMobile || isTablet ? '.' : 'auto',
-      display: isMobile || isTablet ? 'block' : 'none', // Show only in responsive mode
-      flex: 1, // Take up remaining space to push content to the left
+      position: 'relative',
+      flexDirection: isMobile || isTablet ? 'column' : 'row',
     },
     logo: {
       gridArea: isMobile || isTablet ? 'iit-ropar' : 'auto',
