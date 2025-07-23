@@ -128,7 +128,7 @@ const getStyles = (theme) => {
            "admin"`
         : 'none',
       justifyContent: isMobile || isTablet ? 'center' : 'space-between',
-      alignItems: 'center',
+      alignItems: isMobile || isTablet ? 'center' : 'flex-start',
       gap: isMobile || isTablet ? '16px' : '0',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
