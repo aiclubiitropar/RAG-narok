@@ -136,7 +136,7 @@ const getStyles = (theme) => {
       alignItems: 'center',
       gap: isMobile ? '6px' : '12px',
       position: isMobile || isTablet ? 'relative' : 'static', // Adjust positioning for responsive mode
-      justifyContent: isMobile || isTablet ? 'center' : 'flex-start', // Center in responsive mode
+      justifyContent: isMobile || isTablet ? 'flex-start' : 'flex-start', // Align IIT Ropar logo and name to the left in responsive mode
     },
     logo: {
       width: isMobile ? 28 : 36,
