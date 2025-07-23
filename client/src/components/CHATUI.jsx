@@ -120,16 +120,15 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateColumns: isMobile || isTablet ? '1fr' : 'none',
+      gridTemplateColumns: isMobile || isTablet ? 'auto 1fr' : 'none',
       gridTemplateRows: isMobile || isTablet ? 'repeat(3, auto)' : 'none',
       gridTemplateAreas: isMobile || isTablet
-        ? `"logo"
-           "title"
-           "admin"`
+        ? `"logo title"
+           "logo admin"`
         : 'none',
-      justifyContent: isMobile || isTablet ? 'center' : 'space-between',
-      alignItems: isMobile || isTablet ? 'center' : 'flex-start',
-      gap: isMobile || isTablet ? '16px' : '0',
+      justifyContent: isMobile || isTablet ? 'start' : 'space-between',
+      alignItems: 'center',
+      gap: isMobile || isTablet ? '8px' : '0',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
       padding: isMobile || isTablet ? '16px' : '12px 24px',
@@ -138,7 +137,7 @@ const getStyles = (theme) => {
     },
     logo: {
       gridArea: isMobile || isTablet ? 'logo' : 'auto',
-      justifySelf: 'center',
+      justifySelf: 'start',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
       borderRadius: '50%',
@@ -147,11 +146,11 @@ const getStyles = (theme) => {
     },
     title: {
       gridArea: isMobile || isTablet ? 'title' : 'auto',
-      justifySelf: 'center',
+      justifySelf: 'start',
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
       letterSpacing: 0.5,
-      textAlign: 'center',
+      textAlign: 'left',
       color: currentTheme.titleColor,
     },
     adminButton: {
