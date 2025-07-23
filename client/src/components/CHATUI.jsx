@@ -122,17 +122,21 @@ const getStyles = (theme) => {
       display: 'flex',
       flexWrap: 'wrap', // Ensure wrapping for all child elements
       alignItems: 'center',
-      justifyContent: 'center', // Center all elements when wrapping
+      justifyContent: 'space-between', // Default spacing for desktop
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
       padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       gap: isMobile || isTablet ? '12px' : '0',
+      position: 'relative', // Allow absolute positioning for centered elements
     },
     headerGroup: {
       display: 'flex',
       alignItems: 'center',
       gap: isMobile ? '6px' : '12px',
+      position: isMobile || isTablet ? 'absolute' : 'static', // Center in responsive mode
+      left: isMobile || isTablet ? '50%' : 'auto',
+      transform: isMobile || isTablet ? 'translateX(-50%)' : 'none',
     },
     logo: {
       width: isMobile ? 28 : 36,
