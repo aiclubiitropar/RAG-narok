@@ -120,15 +120,16 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateColumns: isMobile || isTablet ? '1fr auto 1fr' : 'none',
-      gridTemplateRows: isMobile || isTablet ? 'auto auto' : 'none',
+      gridTemplateColumns: isMobile || isTablet ? '1fr' : 'none',
+      gridTemplateRows: isMobile || isTablet ? 'repeat(3, auto)' : 'none',
       gridTemplateAreas: isMobile || isTablet
-        ? `"logo title title"
-           "logo admin theme"`
+        ? `"logo"
+           "title"
+           "admin"`
         : 'none',
       justifyContent: isMobile || isTablet ? 'center' : 'space-between',
       alignItems: 'center',
-      gap: isMobile || isTablet ? '12px' : '0',
+      gap: isMobile || isTablet ? '16px' : '0',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
       padding: isMobile || isTablet ? '16px' : '12px 24px',
