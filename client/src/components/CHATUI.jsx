@@ -120,14 +120,8 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateColumns: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
-      gridTemplateRows: isMobile || isTablet ? 'auto auto auto' : 'none',
-      gridTemplateAreas: isMobile || isTablet
-        ? `"logo title admin"
-           "logo title admin"
-           "logo title admin"`
-        : 'none',
-      justifyContent: isMobile || isTablet ? 'center' : 'space-between',
+      justifyContent: isMobile || isTablet ? 'none' : 'center',
+      flexDirection: isMobile || isTablet ? "column" : "row", 
       alignItems: 'center',
       gap: isMobile || isTablet ? '8px' : '0',
       background: currentTheme.headerBg,
