@@ -120,25 +120,20 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateRows: isMobile || isTablet ? 'auto auto auto' : 'none',
-      gridTemplateColumns: isMobile || isTablet ? '1fr 2fr 1fr' : 'none',
-      gridTemplateAreas: isMobile || isTablet
-        ? `"iit-ropar iit-ropar ."
-           "rag rag ."
-           "dark-mode admin admin"`
-        : 'none',
+      gridTemplateColumns: isMobile || isTablet ? 'repeat(3, minmax(100px, 1fr))' : 'none',
+      gridAutoRows: isMobile || isTablet ? 'auto' : 'none',
+      justifyContent: isMobile || isTablet ? 'center' : 'space-between',
+      gap: isMobile || isTablet ? '16px' : '0',
       alignItems: 'center',
-      justifyContent: 'center',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
       padding: isMobile || isTablet ? '16px' : '12px 24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
-      gap: isMobile || isTablet ? '12px' : '0',
       position: 'relative',
-      flexDirection: isMobile || isTablet ? 'column' : 'row',
     },
     logo: {
-      gridArea: isMobile || isTablet ? 'iit-ropar' : 'auto',
+      gridColumn: isMobile || isTablet ? '1 / 2' : 'auto',
+      justifySelf: 'center',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
       borderRadius: '50%',
@@ -146,7 +141,8 @@ const getStyles = (theme) => {
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
     },
     title: {
-      gridArea: isMobile || isTablet ? 'rag' : 'auto',
+      gridColumn: isMobile || isTablet ? '2 / 3' : 'auto',
+      justifySelf: 'center',
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
       letterSpacing: 0.5,
@@ -154,7 +150,8 @@ const getStyles = (theme) => {
       color: currentTheme.titleColor,
     },
     adminButton: {
-      gridArea: isMobile || isTablet ? 'admin' : 'auto',
+      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
+      justifySelf: 'center',
       background: 'transparent',
       color: currentTheme.headerColor,
       border: `1px solid ${currentTheme.headerColor}`,
@@ -166,7 +163,8 @@ const getStyles = (theme) => {
       transition: 'background 0.2s, color 0.2s',
     },
     themeToggleButton: {
-      gridArea: isMobile || isTablet ? 'dark-mode' : 'auto',
+      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
+      justifySelf: 'center',
       background: 'rgba(255,255,255,0.1)',
       border: '1px solid rgba(255,255,255,0.2)',
       borderRadius: '50%',
