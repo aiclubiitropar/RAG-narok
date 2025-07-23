@@ -119,14 +119,14 @@ const getStyles = (theme) => {
       border: `1px solid ${currentTheme.borderColor}`,
     },
     header: {
-      display: isMobile || isTablet ? 'grid' : 'flex', // Use grid layout in responsive mode
-      gridTemplateRows: isMobile || isTablet ? 'repeat(3, 1fr)' : 'none', // Define 3 rows in grid
-      gridTemplateColumns: isMobile || isTablet ? 'repeat(3, 1fr)' : 'none', // Define 3 columns in grid
+      display: isMobile || isTablet ? 'grid' : 'flex',
+      gridTemplateRows: isMobile || isTablet ? 'auto auto auto' : 'none',
+      gridTemplateColumns: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
       gridTemplateAreas: isMobile || isTablet
-        ? `"iit-ropar . dark-mode"
-           ". rag ."
-           "iota . admin"`
-        : 'none', // Define grid areas for responsive mode
+        ? `"iit-ropar rag dark-mode"
+           "iota . admin"
+           ". . ."`
+        : 'none',
       alignItems: 'center',
       justifyContent: 'space-between',
       background: currentTheme.headerBg,
