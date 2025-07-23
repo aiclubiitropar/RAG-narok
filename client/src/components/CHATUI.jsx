@@ -119,10 +119,11 @@ const getStyles = (theme) => {
       border: `1px solid ${currentTheme.borderColor}`,
     },
     header: {
-      display: 'flex',
-      flexWrap: 'wrap', // Ensure wrapping for all child elements
+      display: isMobile || isTablet ? 'grid' : 'flex', // Use grid layout in responsive mode
+      gridTemplateRows: isMobile || isTablet ? 'repeat(3, 1fr)' : 'none', // Define 3 rows in grid
+      gridTemplateColumns: isMobile || isTablet ? 'repeat(3, 1fr)' : 'none', // Define 3 columns in grid
       alignItems: 'center',
-      justifyContent: 'space-between', // Default spacing for desktop
+      justifyContent: 'space-between',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
       padding: isMobile || isTablet ? '16px' : '12px 24px', // Larger padding for mobile/tablet
@@ -136,7 +137,7 @@ const getStyles = (theme) => {
       alignItems: 'center',
       gap: isMobile ? '6px' : '12px',
       position: isMobile || isTablet ? 'relative' : 'static', // Adjust positioning for responsive mode
-      justifyContent: 'flex-start', // Ensure IIT Ropar logo and name are aligned to the left
+      justifyContent: 'center', // Center items in their grid cells
       width: '100%', // Take full width to align to the left
       paddingLeft: isMobile || isTablet ? '0' : 'inherit', // Remove padding on the left in responsive mode
       margin: 0, // Explicitly set margin to 0
@@ -147,6 +148,8 @@ const getStyles = (theme) => {
       flex: 1, // Take up remaining space to push content to the left
     },
     logo: {
+      gridRow: isMobile || isTablet ? '1 / 2' : 'auto',
+      gridColumn: isMobile || isTablet ? '1 / 2' : 'auto',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
       borderRadius: '50%',
@@ -154,12 +157,16 @@ const getStyles = (theme) => {
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
     },
     title: {
+      gridRow: isMobile || isTablet ? '2 / 3' : 'auto',
+      gridColumn: isMobile || isTablet ? '2 / 3' : 'auto',
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
       letterSpacing: 0.5,
       color: currentTheme.titleColor,
     },
     adminButton: {
+      gridRow: isMobile || isTablet ? '3 / 4' : 'auto',
+      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
       background: 'transparent',
       color: currentTheme.headerColor,
       border: `1px solid ${currentTheme.headerColor}`,
@@ -171,16 +178,18 @@ const getStyles = (theme) => {
       transition: 'background 0.2s, color 0.2s',
     },
     themeToggleButton: {
-        background: 'rgba(255,255,255,0.1)',
-        border: '1px solid rgba(255,255,255,0.2)',
-        borderRadius: '50%',
-        width: 36,
-        height: 36,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        color: currentTheme.titleColor,
+      gridRow: isMobile || isTablet ? '1 / 2' : 'auto',
+      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
+      background: 'rgba(255,255,255,0.1)',
+      border: '1px solid rgba(255,255,255,0.2)',
+      borderRadius: '50%',
+      width: 36,
+      height: 36,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      color: currentTheme.titleColor,
     },
     chatArea: {
       flex: 1,
