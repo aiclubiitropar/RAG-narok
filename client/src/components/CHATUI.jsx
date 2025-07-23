@@ -122,6 +122,11 @@ const getStyles = (theme) => {
       display: isMobile || isTablet ? 'grid' : 'flex', // Use grid layout in responsive mode
       gridTemplateRows: isMobile || isTablet ? 'repeat(3, 1fr)' : 'none', // Define 3 rows in grid
       gridTemplateColumns: isMobile || isTablet ? 'repeat(3, 1fr)' : 'none', // Define 3 columns in grid
+      gridTemplateAreas: isMobile || isTablet
+        ? `"iit-ropar . dark-mode"
+           ". rag ."
+           "iota . admin"`
+        : 'none', // Define grid areas for responsive mode
       alignItems: 'center',
       justifyContent: 'space-between',
       background: currentTheme.headerBg,
@@ -144,12 +149,12 @@ const getStyles = (theme) => {
       marginLeft: 0, // Ensure no unintended left margin
     },
     emptyGrid: {
+      gridArea: isMobile || isTablet ? '.' : 'auto',
       display: isMobile || isTablet ? 'block' : 'none', // Show only in responsive mode
       flex: 1, // Take up remaining space to push content to the left
     },
     logo: {
-      gridRow: isMobile || isTablet ? '1 / 2' : 'auto',
-      gridColumn: isMobile || isTablet ? '1 / 2' : 'auto',
+      gridArea: isMobile || isTablet ? 'iit-ropar' : 'auto',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
       borderRadius: '50%',
@@ -157,16 +162,14 @@ const getStyles = (theme) => {
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
     },
     title: {
-      gridRow: isMobile || isTablet ? '2 / 3' : 'auto',
-      gridColumn: isMobile || isTablet ? '2 / 3' : 'auto',
+      gridArea: isMobile || isTablet ? 'rag' : 'auto',
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
       letterSpacing: 0.5,
       color: currentTheme.titleColor,
     },
     adminButton: {
-      gridRow: isMobile || isTablet ? '3 / 4' : 'auto',
-      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
+      gridArea: isMobile || isTablet ? 'admin' : 'auto',
       background: 'transparent',
       color: currentTheme.headerColor,
       border: `1px solid ${currentTheme.headerColor}`,
@@ -178,8 +181,7 @@ const getStyles = (theme) => {
       transition: 'background 0.2s, color 0.2s',
     },
     themeToggleButton: {
-      gridRow: isMobile || isTablet ? '1 / 2' : 'auto',
-      gridColumn: isMobile || isTablet ? '3 / 4' : 'auto',
+      gridArea: isMobile || isTablet ? 'dark-mode' : 'auto',
       background: 'rgba(255,255,255,0.1)',
       border: '1px solid rgba(255,255,255,0.2)',
       borderRadius: '50%',
