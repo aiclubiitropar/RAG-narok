@@ -135,12 +135,12 @@ const getStyles = (theme) => {
       padding: isMobile || isTablet ? '16px' : '12px 24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       position: 'relative',
-      textAlign: 'center', // Added for table-like alignment
+      textAlign: 'center',
     },
     logo: {
       gridArea: isMobile || isTablet ? 'logo' : 'auto',
       justifySelf: 'center',
-      alignSelf: 'center', // Center alignment for table form
+      alignSelf: 'center',
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
       borderRadius: '50%',
@@ -150,6 +150,7 @@ const getStyles = (theme) => {
     title: {
       gridArea: isMobile || isTablet ? 'title' : 'auto',
       justifySelf: 'center',
+      alignSelf: 'center',
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
       letterSpacing: 0.5,
@@ -159,6 +160,7 @@ const getStyles = (theme) => {
     adminButton: {
       gridArea: isMobile || isTablet ? 'admin' : 'auto',
       justifySelf: 'center',
+      alignSelf: 'center',
       background: 'transparent',
       color: currentTheme.headerColor,
       border: `1px solid ${currentTheme.headerColor}`,
