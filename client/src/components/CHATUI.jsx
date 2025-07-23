@@ -120,12 +120,12 @@ const getStyles = (theme) => {
     },
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
-      gridTemplateRows: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
-      gridTemplateColumns: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
+      gridTemplateRows: isMobile || isTablet ? 'auto auto auto' : 'none',
+      gridTemplateColumns: isMobile || isTablet ? '1fr 2fr 1fr' : 'none',
       gridTemplateAreas: isMobile || isTablet
-        ? `". iit-ropar ."
-           ". rag ."
-           "dark-mode admin ."`
+        ? `"iit-ropar iit-ropar ."
+           "rag rag ."
+           "dark-mode admin admin"`
         : 'none',
       alignItems: 'center',
       justifyContent: 'center',
@@ -150,6 +150,7 @@ const getStyles = (theme) => {
       fontWeight: 700,
       fontSize: isMobile ? 18 : 22,
       letterSpacing: 0.5,
+      textAlign: 'center',
       color: currentTheme.titleColor,
     },
     adminButton: {
