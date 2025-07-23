@@ -140,6 +140,7 @@ const getStyles = (theme) => {
       width: '100%', // Take full width to align to the left
       paddingLeft: isMobile || isTablet ? '0' : 'inherit', // Remove padding on the left in responsive mode
       margin: 0, // Explicitly set margin to 0
+      marginLeft: 0, // Ensure no unintended left margin
     },
     emptyGrid: {
       display: isMobile || isTablet ? 'block' : 'none', // Show only in responsive mode
