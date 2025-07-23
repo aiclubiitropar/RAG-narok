@@ -121,7 +121,7 @@ const getStyles = (theme) => {
     header: {
       display: isMobile || isTablet ? 'grid' : 'flex',
       gridTemplateColumns: isMobile || isTablet ? '1fr 1fr 1fr' : 'none',
-      gridTemplateRows: isMobile || isTablet ? 'repeat(3, auto)' : 'none',
+      gridTemplateRows: isMobile || isTablet ? 'auto auto auto' : 'none',
       gridTemplateAreas: isMobile || isTablet
         ? `"logo title admin"
            "logo title admin"
@@ -135,10 +135,12 @@ const getStyles = (theme) => {
       padding: isMobile || isTablet ? '16px' : '12px 24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       position: 'relative',
+      textAlign: 'center', // Added for table-like alignment
     },
     logo: {
       gridArea: isMobile || isTablet ? 'logo' : 'auto',
       justifySelf: 'center',
+      alignSelf: 'center', // Center alignment for table form
       width: isMobile ? 28 : 36,
       height: isMobile ? 28 : 36,
       borderRadius: '50%',
