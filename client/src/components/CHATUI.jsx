@@ -138,6 +138,7 @@ const getStyles = (theme) => {
       position: isMobile || isTablet ? 'relative' : 'static', // Adjust positioning for responsive mode
       justifyContent: 'flex-start', // Ensure IIT Ropar logo and name are aligned to the left
       width: '100%', // Take full width to align to the left
+      paddingLeft: isMobile || isTablet ? '0' : 'inherit', // Remove padding on the left in responsive mode
     },
     emptyGrid: {
       display: isMobile || isTablet ? 'block' : 'none', // Show only in responsive mode
