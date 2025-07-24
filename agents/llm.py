@@ -34,6 +34,7 @@ INSTRUCTIONS = (
         "Tools: retrieval_tool_long (archival), retrieval_tool_short (recent updates), google_search_tool (realtime info or fallback web search).\n"
         "When using retrieval tools, choose the minimal one-word query for best results.\n"
         "Always use retrieval_tool_long first, and if it does not provide sufficient information, then use retrieval_tool_short.\n"
+        "Always use one-word keyword search in retrieval_tool_long.\n"
 )
 
 
@@ -102,7 +103,7 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b"):
                     "input": "Who is the director of IIT Ropar?",
                     "thought": "Static fact → use retrieval_tool_long.",
                     "action": "retrieval_tool_long",
-                    "action_input": "director IIT Ropar"
+                    "action_input": "director"
                 },
                 {
                     "input": "Any holidays this month?",
