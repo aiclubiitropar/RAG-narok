@@ -1,10 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Helper to check device size ---
-const isMobile = window.innerWidth <= 768; // Adjusted breakpoint for better responsiveness
-const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024; // Adjusted breakpoint for tablets
-const isPortraitMobile = window.innerWidth <= 768 && window.innerHeight > window.innerWidth; // Check for portrait mode
+// --- Responsive device helpers ---
+function useDeviceType() {
+  const [device, setDevice] = useState({
+    isMobile: window.innerWidth <= 768,
+    isTablet: window.innerWidth > 768 && window.innerWidth <= 1024,
+    isPortraitMobile: window.innerWidth <= 768 && window.innerHeight > window.innerWidth,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  useEffect(() => {
+    function handleResize() {
+      setDevice({
+        isMobile: window.innerWidth <= 768,
+        isTablet: window.innerWidth > 768 && window.innerWidth <= 1024,
+        isPortraitMobile: window.innerWidth <= 768 && window.innerHeight > window.innerWidth,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return device;
+}
 
 // --- SVG Icon Components (to replace react-icons) ---
 const ChevronDownIcon = ({ size = 14, color = 'currentColor' }) => (
@@ -92,21 +112,24 @@ const themes = {
   }
 };
 
-const getStyles = (theme) => {
+const getStyles = (theme, device) => {
+  const { isMobile, isTablet, isPortraitMobile, width } = device;
   const currentTheme = themes[theme];
   return {
     page: {
       position: 'relative',
       minHeight: '100vh',
       background: currentTheme.bg,
-      padding: isMobile ? '10px' : '20px',
+      padding: isMobile ? '6px' : isTablet ? '12px' : '20px',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
+      width: '100vw',
+      boxSizing: 'border-box',
     },
     container: {
-      width: isMobile ? '95vw' : isTablet ? '90vw' : '80vw',
+      width: isMobile ? '99vw' : isTablet ? '95vw' : '80vw',
       maxWidth: 1200,
       margin: '0 auto',
       borderRadius: isMobile ? 8 : 16,
@@ -117,85 +140,88 @@ const getStyles = (theme) => {
       flexDirection: 'column',
       height: isMobile ? '100vh' : 'calc(100vh - 40px)',
       border: `1px solid ${currentTheme.borderColor}`,
+      boxSizing: 'border-box',
     },
     header: {
-      display: isMobile || isTablet ? 'grid' : 'flex',
-      justifyContent: isMobile || isTablet ? 'none' : 'center',
-      flexDirection: isMobile || isTablet ? "column" : "row", 
+      display: 'flex',
+      flexWrap: isMobile || isTablet ? 'wrap' : 'nowrap',
+      flexDirection: isMobile ? 'column' : 'row',
       alignItems: 'center',
-      gap: isMobile || isTablet ? '8px' : '0',
+      justifyContent: 'space-between',
+      gap: isMobile ? '8px' : '16px',
       background: currentTheme.headerBg,
       color: currentTheme.headerColor,
-      padding: isMobile || isTablet ? '16px' : '12px 24px',
+      padding: isMobile ? '10px 4px' : isTablet ? '14px 12px' : '12px 24px',
       borderBottom: `1px solid ${currentTheme.borderColor}`,
       position: 'relative',
       textAlign: 'center',
+      width: '100%',
+      boxSizing: 'border-box',
     },
     logo: {
-      gridArea: isMobile || isTablet ? 'logo' : 'auto',
-      justifySelf: 'center',
-      alignSelf: 'center',
-      width: isMobile ? 28 : 36,
-      height: isMobile ? 28 : 36,
+      width: isMobile ? 24 : isTablet ? 32 : 36,
+      height: isMobile ? 24 : isTablet ? 32 : 36,
       borderRadius: '50%',
       objectFit: 'cover',
       boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+      minWidth: isMobile ? 24 : isTablet ? 32 : 36,
+      minHeight: isMobile ? 24 : isTablet ? 32 : 36,
     },
     title: {
-      gridArea: isMobile || isTablet ? 'title' : 'auto',
-      justifySelf: 'center',
-      alignSelf: 'center',
       fontWeight: 700,
-      fontSize: isMobile ? 18 : 22,
+      fontSize: isMobile ? 16 : isTablet ? 18 : 22,
       letterSpacing: 0.5,
       textAlign: 'center',
       color: currentTheme.titleColor,
+      flex: 1,
+      minWidth: 80,
     },
     adminButton: {
-      gridArea: isMobile || isTablet ? 'admin' : 'auto',
-      justifySelf: 'center',
-      alignSelf: 'center',
       background: 'transparent',
       color: currentTheme.headerColor,
       border: `1px solid ${currentTheme.headerColor}`,
       borderRadius: 8,
-      padding: '6px 16px',
+      padding: isMobile ? '4px 10px' : '6px 16px',
       fontWeight: 600,
       cursor: 'pointer',
-      fontSize: 14,
+      fontSize: isMobile ? 12 : 14,
       transition: 'background 0.2s, color 0.2s',
+      minWidth: 60,
     },
     themeToggleButton: {
-      gridArea: isMobile || isTablet ? 'theme' : 'auto',
-      justifySelf: 'center',
       background: 'rgba(255,255,255,0.1)',
       border: '1px solid rgba(255,255,255,0.2)',
       borderRadius: '50%',
-      width: 36,
-      height: 36,
+      width: isMobile ? 28 : 36,
+      height: isMobile ? 28 : 36,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       cursor: 'pointer',
       color: currentTheme.titleColor,
+      minWidth: isMobile ? 28 : 36,
+      minHeight: isMobile ? 28 : 36,
     },
     chatArea: {
       flex: 1,
-      padding: isMobile ? '20px 6px' : '20px 16px', // Shift first bot message slightly down
+      padding: isMobile ? '12px 2px' : isTablet ? '16px 8px' : '20px 16px',
       overflowY: 'auto',
       background: currentTheme.chatAreaBg,
       display: 'flex',
       flexDirection: 'column',
-      gap: isMobile ? '8px' : '12px',
+      gap: isMobile ? '6px' : isTablet ? '10px' : '12px',
+      width: '100%',
+      boxSizing: 'border-box',
     },
     message: {
-      maxWidth: isPortraitMobile ? '90%' : isMobile ? '85%' : '70%',
-      padding: isPortraitMobile ? '6px 10px' : isMobile ? '8px 12px' : '10px 16px',
+      maxWidth: isPortraitMobile ? '95%' : isMobile ? '90%' : isTablet ? '80%' : '70%',
+      padding: isPortraitMobile ? '6px 8px' : isMobile ? '8px 10px' : isTablet ? '10px 12px' : '10px 16px',
       borderRadius: 16,
-      fontSize: isPortraitMobile ? 12 : isMobile ? 14 : 16,
+      fontSize: isPortraitMobile ? 12 : isMobile ? 14 : isTablet ? 15 : 16,
       wordBreak: 'break-word',
       lineHeight: 1.5,
       display: 'inline-block',
+      boxSizing: 'border-box',
     },
     botMessage: {
       background: currentTheme.botMessageBg,
@@ -213,65 +239,72 @@ const getStyles = (theme) => {
     reasoningBox: {
       background: currentTheme.reasoningBoxBg,
       borderLeft: `3px solid ${currentTheme.reasoningChevronColor}`,
-      padding: '12px 16px',
+      padding: isMobile ? '8px 10px' : '12px 16px',
       borderRadius: 12,
-      fontSize: 14,
+      fontSize: isMobile ? 12 : 14,
       color: currentTheme.reasoningBoxColor,
       wordBreak: 'break-word',
       lineHeight: 1.5,
       display: 'inline-block',
+      boxSizing: 'border-box',
     },
     reasoningToggle: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        cursor: 'pointer',
-        color: currentTheme.reasoningTitleColor,
-        fontWeight: 700,
-        fontSize: 14,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      cursor: 'pointer',
+      color: currentTheme.reasoningTitleColor,
+      fontWeight: 700,
+      fontSize: isMobile ? 12 : 14,
     },
     inputArea: {
       display: 'flex',
       alignItems: 'center',
-      padding: isMobile ? '8px' : '12px 20px',
+      padding: isMobile ? '6px' : isTablet ? '8px 12px' : '12px 20px',
       borderTop: `1px solid ${currentTheme.borderColor}`,
       background: currentTheme.inputAreaBg,
-      gap: isMobile ? 6 : 10,
+      gap: isMobile ? 4 : isTablet ? 8 : 10,
+      width: '100%',
+      boxSizing: 'border-box',
     },
     input: {
       flex: 1,
       border: 'none',
       borderRadius: 10,
-      padding: isMobile ? '10px 12px' : '12px 16px',
-      fontSize: isMobile ? 14 : 16,
+      padding: isMobile ? '8px 10px' : isTablet ? '10px 12px' : '12px 16px',
+      fontSize: isMobile ? 13 : isTablet ? 15 : 16,
       background: currentTheme.inputBg,
       color: currentTheme.inputColor,
+      minWidth: 60,
     },
     sendButton: {
       background: currentTheme.sendButtonBg,
       color: currentTheme.sendButtonColor,
       border: 'none',
       borderRadius: 10,
-      padding: isMobile ? '10px' : '12px',
-      width: isMobile ? '40px' : '48px',
-      height: isMobile ? '40px' : '48px',
+      padding: isMobile ? '8px' : isTablet ? '10px' : '12px',
+      width: isMobile ? '32px' : isTablet ? '36px' : '48px',
+      height: isMobile ? '32px' : isTablet ? '36px' : '48px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontWeight: 700,
-      fontSize: 20,
+      fontSize: isMobile ? 16 : 20,
+      minWidth: isMobile ? 32 : 36,
+      minHeight: isMobile ? 32 : 36,
     },
     disclaimer: {
-      width: '90%',
+      width: isMobile ? '98%' : isTablet ? '95%' : '90%',
       maxWidth: 1200,
       textAlign: 'center',
-      marginTop: 16,
+      marginTop: 12,
       fontWeight: 500,
-      fontSize: isMobile ? 12 : 14,
+      fontSize: isMobile ? 11 : isTablet ? 13 : 14,
       color: currentTheme.disclaimerColor,
       background: currentTheme.disclaimerBg,
-      padding: '10px',
+      padding: isMobile ? '6px' : '10px',
       borderRadius: 10,
+      boxSizing: 'border-box',
     },
   };
 };
@@ -297,6 +330,7 @@ function setAuthCookie() {
 }
 
 export default function CHATUI() {
+  const device = useDeviceType();
   const [theme, setTheme] = useState(getOrSetThemePreference()); // Initialize theme from cookie
   const [messages, setMessages] = useState([
     { sender: 'bot', text: "Hello! I'm RAGnarok, an AI assistant. How can I help you today?" }
@@ -305,12 +339,12 @@ export default function CHATUI() {
   const [isThinking, setIsThinking] = useState(false);
   const [reasoningStates, setReasoningStates] = useState({});
   const scrollRef = useRef(null);
-  
+
   // This replaces useNavigate for simple navigation.
   // In a real app, you'd use the router's navigate function.
   const navigateToAdmin = () => window.location.href = '/admin';
 
-  const styles = getStyles(theme);
+  const styles = getStyles(theme, device);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -345,7 +379,7 @@ export default function CHATUI() {
     setMessages(newMessages);
     setIsThinking(true);
     setInput('');
-    
+
     // Add thinking message after a short delay for better UX
     setTimeout(() => {
         setMessages(prev => [...prev, { sender: 'bot', text: '__THINKING__' }]);
@@ -383,7 +417,7 @@ export default function CHATUI() {
           const reasoningIdx = messages.length + 1; // Predict index
           setReasoningStates(states => ({ ...states, [reasoningIdx]: true }));
           setMessages(prev => [...prev, { sender: 'bot', text: `**Reasoning:** ${reasoning}`, type: 'reasoning' }]);
-          
+
           setTimeout(() => {
             setReasoningStates(states => ({ ...states, [reasoningIdx]: false }));
           }, 4000); // Auto-collapse after 4 seconds
@@ -420,33 +454,77 @@ export default function CHATUI() {
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        <header style={{ ...styles.header, justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img src={require('./iit-ropar-01.jpg')} alt="IIT Ropar Logo" style={{ ...styles.logo, borderRadius: '6px' }} />
-                <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>IIT Ropar</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img src={require('./RAG_logo.png')} alt="RAGnarok Logo" style={styles.logo} />
-                <span style={styles.title}>RAGnarok</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img src={require('./logo_iota.png')} alt="IOTA Logo" style={styles.logo} />
-                <span style={{ fontWeight: 600, fontSize: isMobile ? 14 : 16 }}>Iota Cluster</span>
-                <button onClick={navigateToAdmin} style={styles.adminButton}>Admin</button>
-                <button onClick={toggleTheme} style={styles.themeToggleButton} aria-label="Toggle theme">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={theme}
-                            initial={{ opacity: 0, rotate: -90 }}
-                            animate={{ opacity: 1, rotate: 0 }}
-                            exit={{ opacity: 0, rotate: 90 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            {theme === 'light' ? <MoonIcon size={18} /> : <SunIcon size={18} />}
-                        </motion.div>
-                    </AnimatePresence>
-                </button>
-            </div>
+        <header style={styles.header}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: device.isMobile ? 6 : 12, minWidth: 0 }}>
+            <img src={require('./iit-ropar-01.jpg')} alt="IIT Ropar Logo" style={{ ...styles.logo, borderRadius: '6px' }} />
+            <span style={{ fontWeight: 600, fontSize: device.isMobile ? 12 : device.isTablet ? 14 : 16 }}>IIT Ropar</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: device.isMobile ? 6 : 12, minWidth: 0, flex: 1, justifyContent: 'center' }}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <img src={require('./RAG_logo.png')} alt="RAGnarok Logo" style={{ ...styles.logo, marginRight: device.isMobile ? 6 : 10 }} />
+              <span style={styles.title}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: device.isMobile ? 22 : device.isTablet ? 18 : 22,
+                    letterSpacing: 0.5,
+                    color: styles.title.color,
+                    verticalAlign: 'middle',
+                    marginRight: device.isMobile ? 4 : 8,
+                    display: 'inline-block',
+                  }}
+                >
+                  RAGnarok
+                  {device.isMobile ? (
+                    <span style={{
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: '#fff',
+                      marginLeft: 4,
+                      letterSpacing: 0,
+                      alignSelf: 'center',
+                      opacity: 0.95,
+                      whiteSpace: 'nowrap',
+                      verticalAlign: 'middle',
+                      display: 'inline-block',
+                    }}>AI Assistant</span>
+                  ) : null}
+                </span>
+                {!device.isMobile && (
+                  <span style={{
+                    fontWeight: 600,
+                    fontSize: device.isTablet ? 15 : 17,
+                    color: '#fff',
+                    marginLeft: 6,
+                    letterSpacing: 0,
+                    alignSelf: 'center',
+                    opacity: 0.95,
+                    whiteSpace: 'nowrap',
+                    verticalAlign: 'middle',
+                    display: 'inline-block',
+                  }}>AI Assistant</span>
+                )}
+              </span>
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: device.isMobile ? 6 : 12, minWidth: 0 }}>
+            <img src={require('./logo_iota.png')} alt="IOTA Logo" style={styles.logo} />
+            <span style={{ fontWeight: 600, fontSize: device.isMobile ? 12 : device.isTablet ? 14 : 16 }}>Iota Cluster</span>
+            <button onClick={navigateToAdmin} style={styles.adminButton}>Admin</button>
+            <button onClick={toggleTheme} style={styles.themeToggleButton} aria-label="Toggle theme">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={theme}
+                  initial={{ opacity: 0, rotate: -90 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  exit={{ opacity: 0, rotate: 90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {theme === 'light' ? <MoonIcon size={device.isMobile ? 14 : 18} /> : <SunIcon size={device.isMobile ? 14 : 18} />}
+                </motion.div>
+              </AnimatePresence>
+            </button>
+          </div>
         </header>
 
         <div style={styles.chatArea} ref={scrollRef}>
@@ -459,15 +537,15 @@ export default function CHATUI() {
                     {isExpanded ? (
                       <div style={{ ...styles.message, ...styles.botMessage, ...styles.reasoningBox }}>
                         <div style={styles.reasoningToggle} onClick={() => setReasoningStates(s => ({ ...s, [idx]: false }))}>
-                          <ChevronDownIcon size={14} color={styles.reasoningChevronColor} />
+                          <ChevronDownIcon size={device.isMobile ? 12 : 14} color={styles.reasoningChevronColor} />
                           <span>Reasoning</span>
                         </div>
-                        <p style={{ margin: '8px 0 0', paddingLeft: '22px' }}>{msg.text.replace('**Reasoning:** ', '')}</p>
+                        <p style={{ margin: '8px 0 0', paddingLeft: device.isMobile ? '12px' : '22px' }}>{msg.text.replace('**Reasoning:** ', '')}</p>
                       </div>
                     ) : (
                       <div style={{ alignSelf: 'flex-start' }} onClick={() => setReasoningStates(s => ({ ...s, [idx]: true }))}>
-                         <div style={{...styles.reasoningToggle, padding: '4px 8px'}}>
-                            <ChevronRightIcon size={14} color={styles.reasoningChevronColor} />
+                         <div style={{...styles.reasoningToggle, padding: device.isMobile ? '2px 4px' : '4px 8px'}}>
+                            <ChevronRightIcon size={device.isMobile ? 12 : 14} color={styles.reasoningChevronColor} />
                             <span>Reasoning</span>
                          </div>
                       </div>
@@ -482,7 +560,7 @@ export default function CHATUI() {
                   style={{
                     display: 'flex',
                     alignItems: 'flex-start',
-                    gap: '12px',
+                    gap: device.isMobile ? '6px' : '12px',
                     ...(msg.sender === 'bot' ? { flexDirection: 'row' } : { flexDirection: 'row-reverse' }),
                   }}
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -494,7 +572,7 @@ export default function CHATUI() {
                     <img
                       src={require('./RAG_logo.png')}
                       alt="RAGnarok Avatar"
-                      style={{ width: 40, height: 40, borderRadius: '50%' }}
+                      style={{ width: device.isMobile ? 28 : 40, height: device.isMobile ? 28 : 40, borderRadius: '50%' }}
                     />
                   )}
                   <div
@@ -504,7 +582,7 @@ export default function CHATUI() {
                     }}
                   >
                     {msg.text === '__THINKING__' ? (
-                      <ThinkingIndicator theme={theme} />
+                      <ThinkingIndicator theme={theme} device={device} />
                     ) : (
                       <span>{parseTextWithFormatting(msg.text)}</span>
                     )}
@@ -538,7 +616,7 @@ export default function CHATUI() {
   );
 }
 
-function ThinkingIndicator({ theme }) {
+function ThinkingIndicator({ theme, device }) {
     const phrases = [
         'RAGnarok is thinking', 'Retrieving knowledge', 'Consulting the archives',
         'Summoning insights', 'Crunching data', 'Synthesizing response',
@@ -556,7 +634,7 @@ function ThinkingIndicator({ theme }) {
     const dotColor = theme === 'light' ? '#1e293b' : '#f7fafc';
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: device?.isMobile ? 4 : 8 }}>
             <AnimatePresence mode="wait">
                 <motion.span
                     key={current}
@@ -564,29 +642,30 @@ function ThinkingIndicator({ theme }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3 }}
-                    style={{ fontStyle: 'italic', fontWeight: 500 }}
+                    style={{ fontStyle: 'italic', fontWeight: 500, fontSize: device?.isMobile ? 12 : 15 }}
                 >
                     {current}
                 </motion.span>
             </AnimatePresence>
-            <ThinkingDots color={dotColor} />
+            <ThinkingDots color={dotColor} size={device?.isMobile ? 4 : 6} />
         </div>
     );
 }
 
-function ThinkingDots({ color }) {
+function ThinkingDots({ color, size = 6 }) {
   return (
-    <div style={{ display: 'flex', gap: 2 }}>
+    <div style={{ display: 'flex', gap: size / 3 }}>
       {[0, 1, 2].map(i => (
         <motion.span
           key={i}
           style={{
-            width: 6, height: 6,
+            width: size, height: size,
             backgroundColor: color,
             borderRadius: '50%',
+            minWidth: size, minHeight: size,
           }}
           animate={{
-            y: [0, -4, 0],
+            y: [0, -size, 0],
             opacity: [0.5, 1, 0.5],
           }}
           transition={{
