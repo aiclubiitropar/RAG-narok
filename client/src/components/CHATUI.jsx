@@ -445,7 +445,8 @@ export default function CHATUI() {
   function parseTextWithFormatting(text) {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const jsonRegex = /\{[\s\S]*?\}/g;
-    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+|\{[\s\S]*?\})/g);
+    const codeBlockRegex = /```([a-zA-Z0-9]*)\n([\s\S]*?)```/g;
+    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+|\{[\s\S]*?\}|```[a-zA-Z0-9]*\n[\s\S]*?```)/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={index}>{part.slice(2, -2)}</strong>;
@@ -453,10 +454,34 @@ export default function CHATUI() {
       if (urlRegex.test(part)) {
         return <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>{part}</a>;
       }
+      // Code block parser
+      if (part.startsWith('```')) {
+        const match = part.match(/```([a-zA-Z0-9]*)\n([\s\S]*?)```/);
+        if (match) {
+          const lang = match[1] || '';
+          const code = match[2];
+          return (
+            <pre key={index} style={{ background: '#222', color: '#facc15', padding: '10px', borderRadius: 8, fontSize: 13, margin: '8px 0', overflowX: 'auto' }}>
+              <code style={{ fontFamily: 'monospace', fontSize: 13 }}>{code}</code>
+            </pre>
+          );
+        }
+      }
+      // JSON parser
       if (jsonRegex.test(part)) {
+        let parsed;
+        try {
+          parsed = JSON.parse(part);
+        } catch {
+          parsed = null;
+        }
+        if (parsed && parsed.action === "Final Answer" && parsed.action_input) {
+          return <span key={index}>{parsed.action_input}</span>;
+        }
+        // fallback: pretty print JSON
         let formatted;
         try {
-          formatted = JSON.stringify(JSON.parse(part), null, 2);
+          formatted = JSON.stringify(parsed || part, null, 2);
         } catch {
           formatted = part;
         }
