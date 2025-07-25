@@ -122,20 +122,23 @@ const getStyles = (theme, device) => {
       background: currentTheme.bg,
       padding: isMobile ? '6px' : isTablet ? '12px' : '20px',
       overflow: 'hidden',
+      overflowX: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       width: '100vw',
+      maxWidth: '100vw',
       boxSizing: 'border-box',
     },
     container: {
       width: isMobile ? '99vw' : isTablet ? '95vw' : '80vw',
-      maxWidth: 1200,
+      maxWidth: '100vw',
       margin: '0 auto',
       borderRadius: isMobile ? 8 : 16,
       boxShadow: isMobile ? 'none' : '0 8px 30px rgba(0,0,0,0.1)',
       background: currentTheme.containerBg,
       overflow: 'hidden',
+      overflowX: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       height: isMobile ? '100vh' : 'calc(100vh - 40px)',
@@ -439,7 +442,8 @@ export default function CHATUI() {
 
   function parseTextWithFormatting(text) {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+)/g);
+    const jsonRegex = /\{[\s\S]*?\}/g;
+    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+|\{[\s\S]*?\})/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={index}>{part.slice(2, -2)}</strong>;
@@ -447,12 +451,33 @@ export default function CHATUI() {
       if (urlRegex.test(part)) {
         return <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>{part}</a>;
       }
+      if (jsonRegex.test(part)) {
+        let formatted;
+        try {
+          formatted = JSON.stringify(JSON.parse(part), null, 2);
+        } catch {
+          formatted = part;
+        }
+        return (
+          <pre key={index} style={{ background: '#f5f5f5', color: '#222', padding: '8px', borderRadius: 6, fontSize: 13, margin: '6px 0', overflowX: 'auto' }}>{formatted}</pre>
+        );
+      }
       return part;
     });
   }
 
+  useEffect(() => {
+    // Prevent horizontal scroll on body
+    document.body.style.overflowX = 'hidden';
+    return () => {
+      document.body.style.overflowX = '';
+    };
+  }, []);
+
   return (
     <div style={styles.page}>
+      {/* Prevent horizontal scroll globally */}
+      <style>{'body { overflow-x: hidden !important; }'}</style>
       <div style={styles.container}>
         <header style={styles.header}>
           <div style={{ display: 'flex', alignItems: 'center', gap: device.isMobile ? 6 : 12, minWidth: 0 }}>
