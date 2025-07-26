@@ -34,7 +34,6 @@ INSTRUCTIONS = (
         "Tools: retrieval_tool_long (archival), retrieval_tool_short (recent updates), google_search_tool (realtime info or fallback web search).\n"
         "When using retrieval tools, choose the minimal one-word query for best results.\n"
         "Always use retrieval_tool_long first, and if it does not provide sufficient information, then use retrieval_tool_short.\n"
-        "Always use one-word keyword search in retrieval_tool_long.\n"
 )
 
 
@@ -103,7 +102,7 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b"):
                     "input": "Who is the director of IIT Ropar?",
                     "thought": "Static fact → use retrieval_tool_long.",
                     "action": "retrieval_tool_long",
-                    "action_input": "director"
+                    "action_input": "director IIT Ropar"
                 },
                 {
                     "input": "Any holidays this month?",
@@ -122,13 +121,19 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b"):
                     "thought": "Greeting → no tool needed.",
                     "action": "Final Answer",
                     "action_input": "Hi there! I'm RAGnarok—how can I help you today?"
+                },
+                                {
+                    "input": "Which branch is 2023MEB1456",
+                    "thought": "Greeting → no tool needed. CHB (Chemical Engineering), CEB (Civil Engineering), CSB (Computer Science & Engineering), EEB (Electrical Engineering), HSB (Humanities & Social Sciences), MEB (Mechanical Engineering), MMB (Metallurgical & Materials Engineering), EPB (Engineering Physics), MCB (Mathematics & Computing), AIB(Artificial Intelligence & DATA Engineering).",
+                    "action": "Final Answer",
+                    "action_input": "2023MEB1456 is in the Mechanical Engineering branch."
                 }
             ]
         },
         handle_parsing_errors=True,
         early_stopping_method="generate",
         max_iterations=3,
-        max_time=10,
+        max_time=3,
     )
     
     return llm_agent
