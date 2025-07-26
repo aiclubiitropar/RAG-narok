@@ -134,7 +134,7 @@ def wake_llm(longdb, shortdb, model = "deepseek-r1-distill-llama-70b"):
         handle_parsing_errors=True,
         early_stopping_method="generate",
         max_iterations=3,
-        max_time=3,
+        max_time=6,
     )
     
     return llm_agent
