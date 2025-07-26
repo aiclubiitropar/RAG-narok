@@ -34,6 +34,7 @@ INSTRUCTIONS = (
         "Tools: retrieval_tool_long (archival), retrieval_tool_short (recent updates), google_search_tool (realtime info or fallback web search).\n"
         "When using retrieval tools, choose the minimal one-word query for best results.\n"
         "Always use retrieval_tool_long first, and if it does not provide sufficient information, then use retrieval_tool_short.\n"
+        "Remember these are branch codes used in entry numbers: CHB (Chemical Engineering), CEB (Civil Engineering), CSB (Computer Science & Engineering), EEB (Electrical Engineering), HSB (Humanities & Social Sciences), MEB (Mechanical Engineering), MMB (Metallurgical & Materials Engineering), EPB (Engineering Physics), MCB (Mathematics & Computing), AIB(Artificial Intelligence & DATA Engineering).\n"
 )
 
 
