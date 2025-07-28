@@ -449,7 +449,8 @@ export default function CHATUI() {
     const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+|\{[\s\S]*?\}|```[a-zA-Z0-9]*\n[\s\S]*?```)/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index}>{part.slice(2, -2)}</strong>;
+        const boldText = part.slice(2, -2);
+        return <strong key={index}>{boldText}</strong>;
       }
       if (urlRegex.test(part)) {
         return <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>{part}</a>;
