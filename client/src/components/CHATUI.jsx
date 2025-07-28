@@ -446,10 +446,12 @@ export default function CHATUI() {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const jsonRegex = /\{[\s\S]*?\}/g;
     const codeBlockRegex = /```([a-zA-Z0-9]*)\n([\s\S]*?)```/g;
+    const boldRegex = /\*\*(.*?)\*\*/g;
+
     const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+|\{[\s\S]*?\}|```[a-zA-Z0-9]*\n[\s\S]*?```)/g);
     return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        const boldText = part.slice(2, -2);
+      if (boldRegex.test(part)) {
+        const boldText = part.match(boldRegex)?.[1];
         return <strong key={index}>{boldText}</strong>;
       }
       if (urlRegex.test(part)) {
