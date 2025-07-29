@@ -2,6 +2,8 @@ import sys
 import os
 from dotenv import load_dotenv
 from chromadb.config import Settings
+from datetime import datetime
+from pytz import timezone
 
 # Set up environment and paths
 load_dotenv()
@@ -25,7 +27,9 @@ class RAGnarok:
 
     def invoke(self, query: str) -> str:
         try:
-            response = self.llm_agent.invoke({"input": query})
+            current_time = datetime.now(timezone('Asia/Kolkata')).strftime('%A, %Y-%m-%d %H:%M:%S')
+            # Combine current_time into the input key
+            response = self.llm_agent.invoke({"input": f"{query} (Current time: {current_time})"})
 
             # Response could be a string or a dict
             if isinstance(response, dict):
