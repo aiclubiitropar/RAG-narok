@@ -8,6 +8,8 @@ from langchain_groq import ChatGroq
 from langchain_core.exceptions import OutputParserException
 import time
 import random
+from datetime import datetime
+from pytz import timezone
 
 # Add project root to Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -24,7 +26,7 @@ load_dotenv()
 # Initialize vector DBs
 # longdb = LongTermDatabase(persist_directory="longterm_db")
 # shortdb = ShortTermDatabase(client_settings=Settings(persist_directory="shortterm_db"))
-current_time = time.strftime('%A, %Y-%m-%d %H:%M:%S')
+current_time = datetime.now(timezone('Asia/Kolkata')).strftime('%A, %Y-%m-%d %H:%M:%S')
 
 INSTRUCTIONS = (
         f"You are RAGnarok, IIT Ropar's AI assistant. Current time is: {current_time}.\n"
