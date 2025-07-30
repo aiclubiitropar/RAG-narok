@@ -511,7 +511,7 @@ export default function CHATUI() {
       <div style={styles.container}>
         <header style={styles.header}>
           <div style={{ display: 'flex', alignItems: 'center', gap: device.isMobile ? 6 : 12, minWidth: 0 }}>
-            <img src={require('./iit-ropar-01.jpg')} alt="IIT Ropar Logo" style={{ ...styles.logo, borderRadius: '6px' }} />
+            {/* Removed IIT Ropar logo */}
             <span style={{ fontWeight: 600, fontSize: device.isMobile ? 12 : device.isTablet ? 14 : 16 }}>IIT Ropar</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: device.isMobile ? 6 : 12, minWidth: 0, flex: 1, justifyContent: 'center' }}>
