@@ -178,5 +178,5 @@ gradio_client
 qdrant-client
 
 # FastAPI & Uvicorn extras
-uvicorn[standard]==0.34.2
+uvicorn==0.34.2
 python-multipart==0.0.6
