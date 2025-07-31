@@ -109,14 +109,14 @@ def shortterm_worker():
     finally:
         worker_running = False
 
-@fastapp.on_event("startup")
-def startup_event():
-    global worker_thread, worker_running
-    if not worker_thread or not worker_thread.is_alive():
-        worker_thread = threading.Thread(target=shortterm_worker, daemon=True)
-        worker_thread.start()
-        worker_running = True
-        logger.info("Short-term worker started on startup.")
+# @fastapp.on_event("startup")
+# def startup_event():
+#     global worker_thread, worker_running
+#     if not worker_thread or not worker_thread.is_alive():
+#         worker_thread = threading.Thread(target=shortterm_worker, daemon=True)
+#         worker_thread.start()
+#         worker_running = True
+#         logger.info("Short-term worker started on startup.")
 
 # Utility to clean sessions
 def cleanup_user_sessions():
