@@ -1,5 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// Format message text: bold (**text**), links, and newlines
+function formatMessage(text) {
+  if (!text) return text;
+  // Check for JSON Final Answer
+  let extracted = text;
+  try {
+    const maybeJson = JSON.parse(text);
+    if (maybeJson && maybeJson.action === "Final Answer" && maybeJson.action_input) {
+      extracted = maybeJson.action_input;
+    }
+  } catch (e) {
+    // Not JSON, continue
+  }
+  // Replace links
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // Replace bold
+  const boldRegex = /\*\*(.*?)\*\*/g;
+  // Split by newline
+  const lines = extracted.split(/\n/);
+  return lines.map((line, idx) => {
+    // Format links
+    let formatted = line.replace(urlRegex, (url) => `<a href='${url}' target='_blank' rel='noopener noreferrer' style='color:#3b82f6;text-decoration:underline;'>${url}</a>`);
+    // Format bold
+    formatted = formatted.replace(boldRegex, (match, p1) => `<strong>${p1}</strong>`);
+    return <span key={idx} dangerouslySetInnerHTML={{ __html: formatted }} />;
+  });
+}
 
 // --- Responsive device helpers ---
 function useDeviceType() {
@@ -393,7 +420,7 @@ export default function CHATUI() {
     const user_uuid = getOrSetUserUUID();
 
     try {
-      const response = await fetch('https://rag-narok-faig.onrender.com/chat', {
+      const response = await fetch('https://rag-narok-ifdm.onrender.com/chat', { //https://rag-narok-ifdm.onrender.com/chat //https://rag-narok-faig.onrender.com/chat
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: input, user_uuid }),
@@ -442,59 +469,7 @@ export default function CHATUI() {
     if (e.key === 'Enter' && !isThinking) sendMessage();
   };
 
-  function parseTextWithFormatting(text) {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const jsonRegex = /\{[\s\S]*?\}/g;
-    const codeBlockRegex = /```([a-zA-Z0-9]*)\n([\s\S]*?)```/g;
-    const boldRegex = /\*\*(.*?)\*\*/g;
-
-    const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+|\{[\s\S]*?\}|```[a-zA-Z0-9]*\n[\s\S]*?```)/g);
-    return parts.map((part, index) => {
-      if (boldRegex.test(part)) {
-        const boldText = part.match(boldRegex)?.[1];
-        return <strong key={index}>{boldText}</strong>;
-      }
-      if (urlRegex.test(part)) {
-        return <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>{part}</a>;
-      }
-      // Code block parser
-      if (part.startsWith('```')) {
-        const match = part.match(/```([a-zA-Z0-9]*)\n([\s\S]*?)```/);
-        if (match) {
-          const lang = match[1] || '';
-          const code = match[2];
-          return (
-            <pre key={index} style={{ background: '#222', color: '#facc15', padding: '10px', borderRadius: 8, fontSize: 13, margin: '8px 0', overflowX: 'auto' }}>
-              <code style={{ fontFamily: 'monospace', fontSize: 13 }}>{code}</code>
-            </pre>
-          );
-        }
-      }
-      // JSON parser
-      if (jsonRegex.test(part)) {
-        let parsed;
-        try {
-          parsed = JSON.parse(part);
-        } catch {
-          parsed = null;
-        }
-        if (parsed && parsed.action === "Final Answer" && parsed.action_input) {
-          return <span key={index}>{parsed.action_input}</span>;
-        }
-        // fallback: pretty print JSON
-        let formatted;
-        try {
-          formatted = JSON.stringify(parsed || part, null, 2);
-        } catch {
-          formatted = part;
-        }
-        return (
-          <pre key={index} style={{ background: '#f5f5f5', color: '#222', padding: '8px', borderRadius: 6, fontSize: 13, margin: '6px 0', overflowX: 'auto' }}>{formatted}</pre>
-        );
-      }
-      return part;
-    });
-  }
+  // ...existing code...
 
   useEffect(() => {
     // Prevent horizontal scroll on body
@@ -639,7 +614,7 @@ export default function CHATUI() {
                     {msg.text === '__THINKING__' ? (
                       <ThinkingIndicator theme={theme} device={device} />
                     ) : (
-                      <span>{parseTextWithFormatting(msg.text)}</span>
+                      <span>{formatMessage(msg.text)}</span>
                     )}
                   </div>
                 </motion.div>
