@@ -110,7 +110,6 @@ pillow==11.2.1
 posthog==4.2.0
 propcache==0.3.1
 proto-plus==1.26.1
-# protobuf==6.31.0
 psutil==7.0.0
 pyarrow==20.0.0
 pyasn1==0.6.1
@@ -177,3 +176,7 @@ zstandard==0.23.0
 gunicorn==23.0.0
 gradio_client
 qdrant-client
+
+# FastAPI & Uvicorn extras
+uvicorn[standard]==0.34.2
+python-multipart==0.0.6
