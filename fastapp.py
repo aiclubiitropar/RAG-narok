@@ -189,4 +189,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(fastapp, host="0.0.0.0", port=int(os.getenv('PORT', 5000)), reload=True)
+    uvicorn.run(fastapp, host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+
