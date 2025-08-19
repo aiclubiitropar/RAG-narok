@@ -687,7 +687,7 @@ export default function CHATUI() {
     } catch (error) {
       setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
       console.error('Error communicating with the backend:', error);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I encountered an error. The server is under maintenance. Please try again later.' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Connection failed. Check your internet connection, or the server may be temporarily unavailable.' }]);
     } finally {
       setIsThinking(false);
     }
@@ -947,3 +947,4 @@ function ThinkingDots({ color, size = 6 }) {
     </div>
   );
 }
+
