@@ -619,6 +619,24 @@ export default function CHATUI() {
         let botText = data.response;
         let reasoning = '';
 
+        // Check for retrieval_tool_long response pattern
+        if (typeof botText === 'string') {
+          try {
+            const jsonResponse = JSON.parse(botText);
+            // Check for both "action" and "action_input" keys (any action value)
+            if (jsonResponse.action && jsonResponse.action_input) {
+              // Randomly choose between two messages
+              const messages = [
+                "The information isn't readily available, and I'll need to extract it from multiple sources. This may take a little longer than usual if I continue to consult the archives.",
+                "Hmm, my sources don't seem to have the latest update just yet. It might take me a little extra time to dig around and find the most accurate info."
+              ];
+              botText = messages[Math.floor(Math.random() * messages.length)];
+            }
+          } catch (e) {
+            // Not JSON, continue with normal processing
+          }
+        }
+
         if (typeof botText === 'string' && botText.includes('<think>')) {
           const thinkStart = botText.indexOf('<think>') + 7;
           const thinkEnd = botText.indexOf('</think>');
