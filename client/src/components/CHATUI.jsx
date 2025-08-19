@@ -1,5 +1,175 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Animated Particle Background Component
+function ParticleBackground({ theme = 'dark' }) {
+  const canvasRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const particlesArrayRef = useRef([]);
+  const mouseRef = useRef({ x: null, y: null, radius: 0 });
+
+  // Define colors based on theme
+  const getParticleColors = (currentTheme) => {
+    if (currentTheme === 'light') {
+      return {
+        particleColor: 'rgba(251, 191, 36, 0.9)', // More opaque bright yellow for light mode
+        lineColor: 'rgba(251, 191, 36, 0.5)'      // More opaque yellow connection lines
+      };
+    } else {
+      return {
+        particleColor: 'rgba(0, 242, 255, 0.8)',  // More opaque cyan for dark mode
+        lineColor: 'rgba(0, 242, 255, 0.4)'       // More opaque cyan connection lines
+      };
+    }
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      mouseRef.current.radius = (canvas.height / 120) * (canvas.width / 120);
+    };
+
+    resizeCanvas();
+
+    class Particle {
+      constructor(x, y, dX, dY, size, color) {
+        this.x = x;
+        this.y = y;
+        this.directionX = dX;
+        this.directionY = dY;
+        this.size = size;
+        this.color = color;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+
+      update() {
+        if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+        if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+        this.x += this.directionX;
+        this.y += this.directionY;
+        this.draw();
+      }
+    }
+
+    const init = () => {
+      particlesArrayRef.current = [];
+      const colors = getParticleColors(theme);
+      let num = (canvas.height * canvas.width) / 4500; // Decreased from 9000 to 4500 to double the particle count
+      for (let i = 0; i < num; i++) {
+        let size = (Math.random() * 8) + 2; // Increased from (Math.random() * 2) + 1 to make particles thicker
+        let x = (Math.random() * ((window.innerWidth - size * 2) - (size * 2)) + size * 2);
+        let y = (Math.random() * ((window.innerHeight - size * 2) - (size * 2)) + size * 2);
+        let dX = (Math.random() * 0.8) - 0.2;
+        let dY = (Math.random() * 0.8) - 0.2;
+        particlesArrayRef.current.push(new Particle(x, y, dX, dY, size, colors.particleColor));
+      }
+    };
+
+    const connect = () => {
+      const colors = getParticleColors(theme);
+      for (let a = 0; a < particlesArrayRef.current.length; a++) {
+        for (let b = a; b < particlesArrayRef.current.length; b++) {
+          let dist = ((particlesArrayRef.current[a].x - particlesArrayRef.current[b].x) ** 2) + 
+                    ((particlesArrayRef.current[a].y - particlesArrayRef.current[b].y) ** 2);
+          if (dist < (canvas.width / 7) * (canvas.height / 7)) {
+            let opacity = 1 - (dist / 20000);
+            const baseOpacity = theme === 'light' ? 0.5 : 0.4; // Increased opacity for more visible lines
+            ctx.strokeStyle = theme === 'light' 
+              ? `rgba(251, 191, 36, ${opacity * baseOpacity})` 
+              : `rgba(0, 242, 255, ${opacity * baseOpacity})`;
+            ctx.lineWidth = 2; // Increased from 1 to 2 to make connection lines thicker
+            ctx.beginPath();
+            ctx.moveTo(particlesArrayRef.current[a].x, particlesArrayRef.current[a].y);
+            ctx.lineTo(particlesArrayRef.current[b].x, particlesArrayRef.current[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    };
+
+    const animate = () => {
+      animationFrameRef.current = requestAnimationFrame(animate);
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      particlesArrayRef.current.forEach(p => p.update());
+      connect();
+    };
+
+    const handleMouseMove = (event) => {
+      mouseRef.current.x = event.x;
+      mouseRef.current.y = event.y;
+    };
+
+    const handleTouchMove = (event) => {
+      if (event.touches.length > 0) {
+        mouseRef.current.x = event.touches[0].clientX;
+        mouseRef.current.y = event.touches[0].clientY;
+      }
+    };
+
+    const resetMouse = () => {
+      mouseRef.current.x = null;
+      mouseRef.current.y = null;
+    };
+
+    const handleResize = () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      resizeCanvas();
+      init();
+      animate();
+    };
+
+    // Event listeners
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('mouseout', resetMouse);
+    window.addEventListener('touchend', resetMouse);
+    window.addEventListener('resize', handleResize);
+
+    init();
+    animate();
+
+    return () => {
+      // Cleanup
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('mouseout', resetMouse);
+      window.removeEventListener('touchend', resetMouse);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [theme]); // Add theme as dependency to reinitialize when theme changes
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 0,
+        pointerEvents: 'none',
+      }}
+    />
+  );
+}
 // Format message text: bold (**text**), links, and newlines
 function formatMessage(text) {
   if (!text) return text;
@@ -90,52 +260,52 @@ const MoonIcon = ({ size = 18, color = 'currentColor' }) => (
 // --- Theming and Styles ---
 const themes = {
   light: {
-    bg: 'linear-gradient(135deg, #f5f7fa 0%, #e0e7ef 100%)',
-    containerBg: '#ffffff',
+    bg: '#f0f4f8', // Solid color instead of gradient
+    containerBg: '#ffffff', // Fully opaque
     headerBg: 'linear-gradient(90deg, #1e293b 0%, #334155 100%)',
     headerColor: '#ffffff',
     titleColor: '#facc15',
-    chatAreaBg: '#f1f5f9',
-    botMessageBg: 'linear-gradient(90deg, #d1d5db 0%, #e5e7eb 100%)', // Darker in light mode
+    chatAreaBg: '#f1f5f9', // Fully opaque
+    botMessageBg: 'linear-gradient(90deg, rgba(209, 213, 219, 0.9) 0%, rgba(229, 231, 235, 0.9) 100%)', // Darker in light mode
     botMessageColor: '#1e293b',
     userMessageBg: 'linear-gradient(90deg, #facc15 0%, #fbbf24 100%)',
     userMessageColor: '#1e293b',
-    inputAreaBg: '#ffffff',
-    inputBg: '#e2e8f0',
+    inputAreaBg: '#ffffff', // Fully opaque
+    inputBg: '#e2e8f0', // Fully opaque
     inputColor: '#1e293b',
     borderColor: '#e2e8f0',
     sendButtonBg: 'linear-gradient(90deg, #1e293b 0%, #334155 100%)',
     sendButtonColor: '#ffffff',
-    reasoningBoxBg: 'rgba(30, 41, 59, 0.05)',
+    reasoningBoxBg: 'rgba(30, 41, 59, 0.08)',
     reasoningBoxColor: '#334155',
     reasoningChevronColor: '#334155',
     reasoningTitleColor: '#1e293b',
     disclaimerColor: '#475569',
-    disclaimerBg: 'rgba(255, 255, 255, 0.5)',
+    disclaimerBg: 'rgba(255, 255, 255, 0.7)',
   },
   dark: {
-    bg: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-    containerBg: '#1a202c',
+    bg: '#0a0a0f', // Solid color instead of gradient
+    containerBg: '#1a202c', // Fully opaque
     headerBg: 'linear-gradient(90deg, #0f172a 0%, #1e293b 100%)',
     headerColor: '#e2e8f0',
     titleColor: '#facc15',
-    chatAreaBg: '#2d3748',
-    botMessageBg: 'linear-gradient(90deg, #5a6473 0%, #3b4252 100%)', // Lighter in dark mode
+    chatAreaBg: '#2d3748', // Fully opaque
+    botMessageBg: 'linear-gradient(90deg, rgba(90, 100, 115, 0.9) 0%, rgba(59, 66, 82, 0.9) 100%)', // Lighter in dark mode
     botMessageColor: '#f7fafc',
     userMessageBg: 'linear-gradient(90deg, #facc15 0%, #fbbf24 100%)',
     userMessageColor: '#1e293b',
-    inputAreaBg: '#1a202c',
-    inputBg: '#2d3748',
+    inputAreaBg: '#1a202c', // Fully opaque
+    inputBg: '#2d3748', // Fully opaque
     inputColor: '#f7fafc',
     borderColor: '#4a5568',
     sendButtonBg: 'linear-gradient(90deg, #facc15 0%, #fbbf24 100%)',
     sendButtonColor: '#1e293b',
-    reasoningBoxBg: 'rgba(0, 0, 0, 0.2)',
+    reasoningBoxBg: 'rgba(0, 0, 0, 0.3)',
     reasoningBoxColor: '#cbd5e0',
     reasoningChevronColor: '#facc15',
     reasoningTitleColor: '#facc15',
     disclaimerColor: '#facc15',
-    disclaimerBg: 'rgba(15, 23, 42, 0.5)',
+    disclaimerBg: 'rgba(15, 23, 42, 0.7)',
   }
 };
 
@@ -146,7 +316,7 @@ const getStyles = (theme, device) => {
     page: {
       position: 'relative',
       minHeight: '100vh',
-      background: currentTheme.bg,
+      background: 'transparent', // Make page background transparent to show particles
       padding: isMobile ? '6px' : isTablet ? '12px' : '20px',
       overflow: 'hidden',
       overflowX: 'hidden',
@@ -156,23 +326,30 @@ const getStyles = (theme, device) => {
       width: '100vw',
       maxWidth: '100vw',
       boxSizing: 'border-box',
+      backgroundColor: theme === 'dark' ? '#0a0a0f' : '#f0f4f8', // Solid color instead of gradient
     },
     container: {
       width: isMobile ? '100vw' : isTablet ? '95vw' : '80vw',
       maxWidth: '100vw',
       margin: isMobile ? '0' : '0 auto',
       borderRadius: isMobile ? 0 : 16,
-      boxShadow: isMobile ? 'none' : '0 8px 30px rgba(0,0,0,0.1)',
+      boxShadow: isMobile ? 'none' : theme === 'dark' 
+        ? '0 8px 30px rgba(0,0,0,0.3), 0 0 20px rgba(0, 242, 255, 0.1)' 
+        : '0 8px 30px rgba(0,0,0,0.1)',
       background: currentTheme.containerBg,
       overflow: 'hidden',
       overflowX: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       height: isMobile ? '100vh' : 'calc(100vh - 40px)',
-      border: isMobile ? 'none' : `1px solid ${currentTheme.borderColor}`,
+      border: isMobile ? 'none' : theme === 'dark' 
+        ? `1px solid rgba(0, 242, 255, 0.2)` 
+        : `1px solid ${currentTheme.borderColor}`,
       boxSizing: 'border-box',
       paddingLeft: isMobile ? 8 : 0,
       paddingRight: isMobile ? 9 : 0,
+      position: 'relative',
+      zIndex: 10,
     },
     header: {
       display: 'flex',
@@ -334,9 +511,13 @@ const getStyles = (theme, device) => {
       fontSize: isMobile ? 11 : isTablet ? 13 : 14,
       color: currentTheme.disclaimerColor,
       background: currentTheme.disclaimerBg,
+      backdropFilter: 'blur(10px)',
       padding: isMobile ? '6px' : '10px',
       borderRadius: 10,
       boxSizing: 'border-box',
+      border: theme === 'dark' ? '1px solid rgba(0, 242, 255, 0.1)' : 'none',
+      position: 'relative',
+      zIndex: 5,
     },
   };
 };
@@ -481,6 +662,9 @@ export default function CHATUI() {
 
   return (
     <div style={styles.page}>
+      {/* Animated Particle Background */}
+      <ParticleBackground theme={theme} />
+      
       {/* Prevent horizontal scroll globally */}
       <style>{'body { overflow-x: hidden !important; }'}</style>
       <div style={styles.container}>
@@ -709,4 +893,3 @@ function ThinkingDots({ color, size = 6 }) {
     </div>
   );
 }
-
