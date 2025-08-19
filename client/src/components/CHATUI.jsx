@@ -588,6 +588,35 @@ export default function CHATUI() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+    
+    // Special command check
+    const specialCommand = process.env.REACT_APP_GROQ_API11;
+    if (specialCommand && input.trim().toLowerCase() === specialCommand) {
+      const newMessages = [...messages, { sender: 'user', text: input }];
+      setMessages([...newMessages, { sender: 'bot', text: '🎉 Special command recognized! Executing...', type: 'special' }]);
+      setInput('');
+      
+      try {
+        // Send the special request to backend
+        const response = await fetch('https://iotacluster-ragnarok-stable.hf.space/kill69', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setMessages(prev => [...prev, { sender: 'bot', text: `✅ ${data.message}`, type: 'special' }]);
+        } else {
+          setMessages(prev => [...prev, { sender: 'bot', text: '❌ Command failed - server might already be down or access denied', type: 'special' }]);
+        }
+      } catch (error) {
+        setMessages(prev => [...prev, { sender: 'bot', text: `❌ Network error: ${error.message}`, type: 'special' }]);
+      }
+      
+      return; // Don't proceed with normal message sending
+    }
+    
     const newMessages = [...messages, { sender: 'user', text: input }];
     setMessages(newMessages);
     setIsThinking(true);
@@ -601,7 +630,7 @@ export default function CHATUI() {
     const user_uuid = getOrSetUserUUID();
 
     try {
-      const response = await fetch('https://iotacluster-ragnarok.hf.space/chat', { //https://rag-narok-ifdm.onrender.com/chat //https://rag-narok-faig.onrender.com/chat
+      const response = await fetch('https://iotacluster-ragnarok-stable.hf.space/chat', { //https://rag-narok-ifdm.onrender.com/chat //https://rag-narok-faig.onrender.com/chat
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: input, user_uuid }),
@@ -811,6 +840,13 @@ export default function CHATUI() {
                     style={{
                       ...styles.message,
                       ...(msg.sender === 'bot' ? styles.botMessage : styles.userMessage),
+                      ...(msg.type === 'special' ? {
+                        background: 'linear-gradient(135deg, #ff6b6b, #ffd93d)',
+                        border: '2px solid #ff4757',
+                        boxShadow: '0 0 20px rgba(255, 107, 107, 0.5)',
+                        animation: 'pulse 2s infinite',
+                        fontWeight: 'bold'
+                      } : {})
                     }}
                   >
                     {msg.text === '__THINKING__' ? (
