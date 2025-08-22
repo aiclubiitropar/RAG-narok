@@ -326,24 +326,23 @@ const getStyles = (theme, device) => {
       width: '100vw',
       maxWidth: '100vw',
       boxSizing: 'border-box',
-      backgroundColor: theme === 'dark' ? '#0a0a0f' : '#f0f4f8', // Solid color instead of gradient
     },
     container: {
       width: isMobile ? '100vw' : isTablet ? '95vw' : '80vw',
       maxWidth: '100vw',
       margin: isMobile ? '0' : '0 auto',
       borderRadius: isMobile ? 0 : 16,
-      boxShadow: isMobile ? 'none' : theme === 'dark' 
-        ? '0 8px 30px rgba(0,0,0,0.3), 0 0 20px rgba(0, 242, 255, 0.1)' 
+      boxShadow: isMobile ? 'none' : theme === 'dark'
+        ? '0 8px 30px rgba(0,0,0,0.3), 0 0 20px rgba(0, 242, 255, 0.1)'
         : '0 8px 30px rgba(0,0,0,0.1)',
-      background: currentTheme.containerBg,
+      background: 'transparent',
       overflow: 'hidden',
       overflowX: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       height: isMobile ? '100vh' : 'calc(100vh - 40px)',
-      border: isMobile ? 'none' : theme === 'dark' 
-        ? `1px solid rgba(0, 242, 255, 0.2)` 
+      border: isMobile ? 'none' : theme === 'dark'
+        ? `1px solid rgba(0, 242, 255, 0.2)`
         : `1px solid ${currentTheme.borderColor}`,
       boxSizing: 'border-box',
       paddingLeft: isMobile ? 8 : 0,
@@ -415,7 +414,10 @@ const getStyles = (theme, device) => {
       flex: 1,
       padding: isMobile ? '12px 2px' : isTablet ? '16px 8px' : '20px 16px',
       overflowY: 'auto',
-      background: currentTheme.chatAreaBg,
+      background: theme === 'dark' 
+        ? 'rgba(45, 55, 72, 0.7)' 
+        : 'rgba(241, 245, 249, 0.7)',
+      backdropFilter: 'blur(10px)',
       display: 'flex',
       flexDirection: 'column',
       gap: isMobile ? '6px' : isTablet ? '10px' : '12px',
@@ -471,7 +473,10 @@ const getStyles = (theme, device) => {
       alignItems: 'center',
       padding: isMobile ? '6px' : isTablet ? '8px 12px' : '12px 20px',
       borderTop: `1px solid ${currentTheme.borderColor}`,
-      background: currentTheme.inputAreaBg,
+      background: theme === 'dark' 
+        ? 'rgba(26, 32, 44, 0.7)' 
+        : 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(10px)',
       gap: isMobile ? 4 : isTablet ? 8 : 10,
       width: '100%',
       boxSizing: 'border-box',
@@ -687,7 +692,7 @@ export default function CHATUI() {
     } catch (error) {
       setMessages(prev => prev.filter(msg => msg.text !== '__THINKING__'));
       console.error('Error communicating with the backend:', error);
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Connection failed. Check your internet connection, or the server may be temporarily unavailable.' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I encountered an error. The server is under maintenance. Please try again later.' }]);
     } finally {
       setIsThinking(false);
     }
@@ -947,4 +952,3 @@ function ThinkingDots({ color, size = 6 }) {
     </div>
   );
 }
-
