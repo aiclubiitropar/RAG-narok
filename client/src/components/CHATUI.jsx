@@ -696,8 +696,8 @@ export default function CHATUI() {
         ...prev,
         { 
           sender: 'bot', 
-          text: `Connection Error:
-      1) Check your internet connection
+          text: `Connection Error:\n
+      1) Check your internet connection\n
       2) Server may be under maintenance, try again later`
         }
       ]);
@@ -961,4 +961,5 @@ function ThinkingDots({ color, size = 6 }) {
     </div>
   );
 }
+
 
